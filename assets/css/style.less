@@ -1,0 +1,337 @@
+@default-background: #e74c3c;
+@default-foreground: #ffffff;
+
+body{
+	background-color: #e4e4e4;
+	color: #333333;
+	font-size: medium;
+}
+
+::-moz-selection {
+   background-color: @default-background;
+   color: #fff;
+}
+::selection {
+    background-color: @default-background;
+    color: #fff;
+}
+
+article,
+section{ margin-bottom: 20px; }
+section.home-template,
+section.archive-template,
+section.tag-template{ min-height: 600px; }
+section.share{ text-align: right; }
+
+footer{ text-align: center; min-height: 50px; margin-top: 20px; overflow: hidden; padding: 10px 0 10px 0; display: none; }
+footer > .container{  }
+footer p{ margin: 0; color: #959595; font-size: small; }
+footer p > a{ color: inherit; }
+footer p > a:hover{ color: inherit; }
+
+.widgets{ text-align: center; margin: 50px 0 20px 0; display: none; }
+.widgets > .widget{ display: inline-block;}
+
+.grid-item{ display: none; }
+.grid-item > .thumbnail > .image-wrapper{  }
+.grid-item > .thumbnail > .image-wrapper > img{ width: 100%; }
+.grid-item.unloaded > .thumbnail > .image-wrapper,
+.grid-item.loading > .thumbnail > .image-wrapper{ background-color: @default-background; }
+.grid-item.unloaded > .thumbnail > .image-wrapper > img,
+.grid-item.loading > .thumbnail > .image-wrapper > img{ visibility: hidden; height: 140px; }
+.grid-empty{ text-align: center; height: 500px; line-height: 500px; }
+.grid-empty > span{ color: #989898; font-size: 36px; }
+
+/* Prev next post style */
+.prev-next-post .container{
+	padding: 0;
+}
+
+.prev-next-post div[class^="col-"]{
+	text-align: center;
+	padding: 0;
+}
+
+.prev-next-post a,
+.prev-next-post a:hover{
+	height: 130px;
+	display: inline-block;
+	width: 100%;
+	z-index: 1;
+	color: @default-foreground;
+	text-decoration: none;
+	background-size: cover;
+	background-position: center center;
+	background-color: #b4b4b4;
+}
+
+.prev-next-post a:before{
+	position: absolute;
+    display: block;
+    content: "";
+    top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.prev-next-post a:hover:before{
+	background-color: rgba(0,0,0,0.2);
+	transition-duration: 0.2s;
+}
+
+.prev-next-post .post-meta-info{
+    display: inline-block;
+    z-index: 2;
+	position: relative;
+	margin-top: 40px;
+}
+
+.prev-next-post .post-meta-info h4{
+	padding: 2px 5px 2px 5px; margin: 0;
+	color: @default-background;
+	display: inline;
+}
+
+.prev-next-post .post-meta-info h3{
+	margin: 10px 0 0 0; padding: 0;
+	/*font-weight: bold;*/
+}
+
+.post-bottom-info{ display: inline-block; width: 100%; margin-top: 40px; }
+div.tags{ display: inline-block; float: right; width: 100%;}
+div.share{ display: inline-block; float: right; width: 100%; margin-top: 10px;}
+
+.img-crop{ height: 150px; width: 150px; overflow: hidden; position: relative; display: inline-block; border: 5px solid #ffffff; margin: 10px; }
+.img-crop > .img{ height: 150px; width: 150px; background-position: center center; background-size: cover; }
+
+.author-profile{ text-align: center; background-position: center center; background-size: cover; padding: 20px 0 20px 0; }
+.author-profile pre{ background-color: transparent; color: inherit; font-size: inherit; font-family: inherit; border: none; }
+.author-profile.author-profile-cover{ color: #ffffff; }
+.author-profile.author-profile-cover a{ color: #ffffff; }
+
+.tag-template .page-header h1{ margin-top: 0; }
+
+/* Bootstrap custom */
+a,
+a:hover{ color: @default-background; }
+
+article .container,
+section .container{ background-color: #ffffff; padding: 15px; }
+section.archive-template .container,
+section.tag-template .container,
+section.home-template .container{ background-color: transparent; padding: 0; }
+section.tag-template .page-header{ border-bottom: none; color: #989898; margin: 0; }
+section.tag-template .page-header small{ color: inherit; }
+
+article .content{
+	/*border: 1px solid red;*/
+	text-align: center;
+	/*width: 750px;
+    margin-left: 90px;*/
+}
+
+article .content > *{
+	/*width: 750px;*/
+	text-align: left;
+	/*display: inline-block;*/
+}
+
+article .content > p{
+}
+
+article .content > p > img{
+	display: block;
+    max-width: 940px;
+    height: auto;
+    position: relative;
+	left: 50%;
+	margin: 20px 0;
+    -webkit-transform: translateX(-50%);
+    -ms-transform: translateX(-50%);
+    transform: translateX(-50%);
+	/*-moz-box-shadow: 0px 0px 10px #666;
+	-webkit-box-shadow: 0px 0px 10px #666;
+	box-shadow: 0px 0px 10px #666;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#666666')";
+	filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#666666');*/
+}
+
+.row{ margin: 0; }
+
+.navbar{ background-color: @default-background; border: none; border-radius: 0 !important; background-size: cover; background-position: center center; }
+.navbar-brand.img{ display: inline-block; padding: 0; }
+.navbar-brand.img > img{ max-height: 100%; }
+.navbar-default .navbar-brand,
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-brand:focus{ color: @default-foreground; font-size: xx-large; }
+.navbar-default .navbar-toggle{ border: none; color: @default-foreground; right: 0; position: absolute; }
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus{ background-color: transparent; }
+.navbar-default .navbar-nav > li > a{ color: @default-foreground; }
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus{ color: @default-background; background-color: #F9F9F9; }
+.navbar-default .navbar-collapse,
+.navbar-default .navbar-form{ border: none; }
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus{ background-color: #B6372A; color: @default-foreground;}
+.navbar-default .navbar-use-use-cover{ color: red; }
+
+.thumbnail{ background-color: #F9F9F9; margin-bottom: 25px; border-bottom: 2px solid #D8D8D8; }
+.thumbnail > img, .thumbnail a > img{ width: 100%; }
+.thumbnail > .caption{ padding-bottom: 4px; }
+.thumbnail > .caption > time{ font-size: small; position: absolute; right: 25px; bottom: 35px; color: #959595; }
+.thumbnail > .caption > h3{ margin-top: 5px; }
+.thumbnail > .caption > p{ color: #4C4C4C; }
+
+.page-header{ margin: 20px 0 20px; text-align: center; }
+
+.nav>li>a{  }
+
+.pager li>a{ color: #333333; }
+
+.btn-alizarin{ background-color: @default-background; border-color: #CF3C2D; color: @default-foreground; }
+.btn-alizarin:hover,
+.btn-alizarin:focus{ background-color: #FF7C6F; border-color: #D8685D; color: @default-foreground;
+}
+.btn-social{ border: none; }
+.btn-social>:first-child{ border-right: none; }
+.btn-social.btn-sm{ padding-left: 27px; }
+
+/* Support cover */
+.with-cover{
+	width: 100%;
+    height: 100%;
+	background-attachment: fixed;
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
+.with-cover .navbar{
+	background-color: transparent;
+}
+
+.with-cover .navbar-default .navbar-nav > li > a{
+}
+
+.with-cover .navbar-default .navbar-nav > li > a:hover,
+.with-cover .navbar-default .navbar-nav > li > a:focus{
+	background-color: transparent;
+}
+
+.with-cover .pager,
+.with-cover footer p{
+	color: @default-foreground;
+}
+
+.pagination{
+	display: none;
+}
+
+@media (min-width: 1200px){
+	.container {
+		width: 970px;
+	}
+}
+
+@media (min-width: 992px){
+    /*.container.limit-width { width: 780px; }*/
+	.with-cover .navbar{
+		background-image: none !important;
+	}
+}
+
+@media (max-width: 992px){
+	article .content > *{
+		width: 100%;
+	}
+	article .content > p > img{
+		max-width: 100%;
+	}
+	.with-cover{
+		background-image: none !important;
+	}
+	.with-cover .navbar{
+		background-color: inherit;
+	}
+	.with-cover .navbar-default .navbar-nav > li > a:hover,
+	.with-cover .navbar-default .navbar-nav > li > a:focus{
+		background-color: inherit;
+	}
+	.with-cover .pager,
+	.with-cover footer p{
+		color: inherit;
+	}
+}
+
+
+
+/*!
+ * Hover.css (http://ianlunn.github.io/Hover/)
+ * Version: 2.0.2
+ * Author: Ian Lunn @IanLunn
+ * Author URL: http://ianlunn.co.uk/
+ * Github: https://github.com/IanLunn/Hover
+
+ * Made available under a MIT License:
+ * http://www.opensource.org/licenses/mit-license.php
+
+ * Hover.css Copyright Ian Lunn 2014. Generated with Sass.
+ */
+/* BACKGROUND TRANSITIONS */
+/* Fade */
+.hvr-fade {
+  display: inline-block;
+  vertical-align: middle;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  -webkit-transition-duration: 0.3s;
+  transition-duration: 0.3s;
+  -webkit-transition-property: color, background-color;
+  transition-property: color, background-color;
+}
+.hvr-fade:hover, .hvr-fade:focus, .hvr-fade:active {
+  background-color: #2098d1;
+  color: white;
+}
+
+
+/* Spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  background-color: @default-background;
+  /*margin: 100px auto;*/
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-animation: sk-rotateplane 1.2s infinite ease-in-out;
+  animation: sk-rotateplane 1.2s infinite ease-in-out;
+}
+
+@-webkit-keyframes sk-rotateplane {
+  0% { -webkit-transform: perspective(120px) }
+  50% { -webkit-transform: perspective(120px) rotateY(180deg) }
+  100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg) }
+}
+
+@keyframes sk-rotateplane {
+  0% {
+    transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+    -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg)
+  } 50% {
+    transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+    -webkit-transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg)
+  } 100% {
+    transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+    -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+  }
+}
