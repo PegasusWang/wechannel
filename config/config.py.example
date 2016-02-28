@@ -1,0 +1,13 @@
+class CONFIG:
+    DEBUG = True
+
+    class MONGO:
+        HOST = "127.0.0.1"
+        DATABASE = "test"
+        PORT = 27017
+        USERNAME = ""
+        PASSWORD = ""
+
+    class REDIS:
+        HOST = "127.0.0.1"
+        PORT = "6379"
