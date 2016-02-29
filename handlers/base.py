@@ -5,11 +5,11 @@ from . import _env
 from tornado.web import RequestHandler, HTTPError
 import mako.lookup
 import mako.template
+import traceback
 from mako import exceptions
 from os.path import join
+from settings import TEMPLATE_PATH as TEMPLATE_PATH
 
-
-TEMPLATE_PATH = [join(_env.PREFIX, 'templates')]
 
 MAKO_LOOK_UP = mako.lookup.TemplateLookup(
     directories=TEMPLATE_PATH,
@@ -45,10 +45,9 @@ class BaseHandler(RequestHandler):
             )
             env_kwargs.update(kwargs)
             return template.render(**env_kwargs)
-        except:
-            # exception handler
+        except Exception:
+            traceback.print_exc()
             return exceptions.html_error_template().render()
-            # pass
 
     def render(self, filename, **kwargs):
         self.finish(self.render_string(filename, **kwargs))
