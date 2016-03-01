@@ -8,9 +8,23 @@ from motor import MotorClient
 from redis import StrictRedis
 
 
-mongo_client = MongoClient(CONFIG.MONGO.HOST, CONFIG.MONGO.PORT)
-motor_client = MotorClient(CONFIG.MONGO.HOST, CONFIG.MONGO.PORT)
-redis_client = StrictRedis(CONFIG.REDIS.HOST, CONFIG.REDIS.PORT)
+def make_mongo_url(mongo_config):
+    # http://stackoverflow.com/questions/29006887/mongodb-cr-authentication-failed
+    if getattr(mongo_config, 'USERNAME', None):
+        MONGO_LOGIN = "%s:%s@" % (mongo_config.USERNAME, mongo_config.PASSWORD)
+    else:
+        MONGO_LOGIN = ""
+
+    return "mongodb://%s%s:%s/" % (MONGO_LOGIN, mongo_config.HOST,
+                                   mongo_config.PORT)
+
+
+MONGO_URL = make_mongo_url(CONFIG.MONGO)
+
+mongo_client = MongoClient(MONGO_URL)
+motor_client = MotorClient(MONGO_URL)
+redis_client = StrictRedis(CONFIG.REDIS.HOST, CONFIG.REDIS.PORT,
+                           CONFIG.REDIS.PASSWORD)
 
 
 client_db_map = {
