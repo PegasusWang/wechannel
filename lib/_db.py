@@ -15,8 +15,10 @@ def make_mongo3_url(mongo_config):
     else:
         MONGO_LOGIN = ""
 
-    url = "mongodb://%s%s:%s/admin?authMechanism=SCRAM-SHA-1" % (
-        MONGO_LOGIN, mongo_config.HOST, mongo_config.PORT)
+    url = "mongodb://%s%s:%s/%s?authMechanism=SCRAM-SHA-1" % (
+        MONGO_LOGIN, mongo_config.HOST,
+        mongo_config.PORT, mongo_config.DATABASE
+    )
     return url
 
 
