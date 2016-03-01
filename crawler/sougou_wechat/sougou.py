@@ -5,6 +5,7 @@ import _env
 import json
 import logging
 import random
+import sys
 import time
 import traceback
 
@@ -100,6 +101,8 @@ class SougouWechat:
         """搜索搜狗微信公众号并返回公众号文章列表页面,返回列表格式如下
         http://weixin.sogou.com/gzh?openid=oIWsFt2uCBiQ3mWa2BSUtmdKD3gs&amp;ext=p8lVKENENbkGdvuPNCqHoUqzuLEPtZheP6oyzp3YVsY_-OJEvXMz4yk2nJytyUxY
         """
+        if not self.name:
+            return
         if self.page > 10:
             self.logger.info("抓取前10页结束: %s" % self.name)
             return None
@@ -230,7 +233,7 @@ class SougouWechat:
             return
 
         o = json.loads(r.text)
-        fields = {'cdn_url', 'nick_name', 'title', 'content',
+        fields = {'cdn_url', 'nick_name', 'title', 'content', 'desc',
                   'link', 'ori_create_time'}
         article_dict = {k: o.get(k) for k in fields}
         if self.col.find_one(dict(nick_name=self.name, title=o['title'])):
@@ -260,6 +263,12 @@ class SougouWechat:
         self.fetch(update=True)
 
 
+def fetch(name):
+    if name:
+        s = SougouWechat(name)
+        s.fetch()
+
+
 def fetch_all(_id=1, update=False):
     name_li = name_list(_id=_id)
     name_li.sort()
@@ -273,5 +282,10 @@ def fetch_all(_id=1, update=False):
 
 
 if __name__ == '__main__':
-    fetch_all(7)
-    fetch_all(1)
+    #fetch_all(7)
+    #fetch_all(1)
+    try:
+        name = sys.argv[1]
+    except IndexError:
+        name = ""
+    fetch(name)
