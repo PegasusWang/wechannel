@@ -9,6 +9,7 @@ from redis import StrictRedis
 
 
 def make_mongo3_url(mongo_config):
+    """注意pymongo和motor的版本号，按照配置里的装"""
     # mongodb://user:password@example.com/the_database?authMechanism=SCRAM-SHA-1
     if getattr(mongo_config, 'USERNAME', None):
         MONGO_LOGIN = "%s:%s@" % (mongo_config.USERNAME, mongo_config.PASSWORD)
