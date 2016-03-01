@@ -8,18 +8,32 @@ from motor import MotorClient
 from redis import StrictRedis
 
 
-def make_mongo_url(mongo_config):
-    # http://stackoverflow.com/questions/29006887/mongodb-cr-authentication-failed
+def make_mongo3_url(mongo_config):
+    # mongodb://user:password@example.com/the_database?authMechanism=SCRAM-SHA-1
     if getattr(mongo_config, 'USERNAME', None):
         MONGO_LOGIN = "%s:%s@" % (mongo_config.USERNAME, mongo_config.PASSWORD)
     else:
         MONGO_LOGIN = ""
 
-    return "mongodb://%s%s:%s/" % (MONGO_LOGIN, mongo_config.HOST,
-                                   mongo_config.PORT)
+    url = "mongodb://%s%s:%s/admin?authMechanism=SCRAM-SHA-1" % (
+        MONGO_LOGIN, mongo_config.HOST, mongo_config.PORT)
+    return url
 
 
-MONGO_URL = make_mongo_url(CONFIG.MONGO)
+def make_mongo_url(mongo_config):
+    # http://stackoverflow.com/questions/29006887/mongodb-cr-authentication-failed
+    # http://ibruce.info/2015/03/03/mongodb3-auth/   # 如何设置认证
+    if getattr(mongo_config, 'USERNAME', None):
+        MONGO_LOGIN = "%s:%s@" % (mongo_config.USERNAME, mongo_config.PASSWORD)
+    else:
+        MONGO_LOGIN = ""
+
+    url = "mongodb://%s%s:%s/" % (MONGO_LOGIN, mongo_config.HOST,
+                                  mongo_config.PORT)
+    return url
+
+
+MONGO_URL = make_mongo3_url(CONFIG.MONGO)
 
 mongo_client = MongoClient(MONGO_URL)
 motor_client = MotorClient(MONGO_URL)
@@ -42,3 +56,7 @@ def get_collection(db_name, collection_name, client='mongo'):
 def get_db(db_name, client='mongo'):
     client = client_db_map.get(client)
     return getattr(client, db_name, None)
+
+
+if __name__ == '__main__':
+    print(make_mongo_url(CONFIG.MONGO))
