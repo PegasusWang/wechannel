@@ -21,15 +21,17 @@ class IndexHandler(BaseHandler):
     @coroutine
     def get(self, page=None):
         try:
-            page = int(page)
+            page = max(1, int(page)) if page else 1
         except TypeError:
             page = 1
         posts_per_page = CONFIG.SITE.POSTS_PER_PAGE
+        cnt = yield self._db.find().count()
+        pages = int(cnt / posts_per_page)
+        page = min(page, pages) if page else 1
         request_url = self.request.full_url().rsplit('/page')[0]
         posts = []
         pre_url = 'http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl='
 
-        cnt = yield self._db.find().count()
         cursor = self._db.find()
         cursor.sort([('ori_create_time', -1)]).limit(posts_per_page).skip(
             (page-1)*posts_per_page)
@@ -40,7 +42,6 @@ class IndexHandler(BaseHandler):
                                               '%Y-%m-%d')
             posts.append(ObjectDict(post))
 
-        pages = int(cnt / posts_per_page)
         prev_url = None if page == 1 else urljoin(request_url,
                                                   '/page/' + str(page-1))
         next_url = None if page >= pages else urljoin(request_url,
@@ -51,5 +52,5 @@ class IndexHandler(BaseHandler):
 
 URL_ROUTES = [
     url(r'/', IndexHandler),
-    url(r'/page/(\d+)/?', IndexHandler),
+    url(r'/page/(\d*)/?', IndexHandler),
 ]
