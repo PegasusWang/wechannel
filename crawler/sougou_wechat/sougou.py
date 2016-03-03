@@ -20,7 +20,8 @@ from lib._db import redis_client as _redis
 from lib.redis_tools import gid
 from web_util import requests, parse_curl_str
 
-"""搜狗微信爬虫，先根据公众号名字拿到列表页，如果第一个匹配就转到第一个搜索结果的页面, 再遍历每个公众号的文章列表页面。需要定期更新cookies。
+"""搜狗微信爬虫，先根据公众号名字拿到列表页，如果第一个匹配就转到第一个搜索结果
+的页面, 再遍历每个公众号的文章列表页面。需要定期更新cookies。
 """
 
 
@@ -42,8 +43,10 @@ class SougouWechat:
     curl 'http://weixin.sogou.com/gzhjs?openid=oIWsFt2uCBiQ3mWa2BSUtmdKD3gs&ext=&cb=sogou.weixin_gzhcb&page=13&gzhArtKeyWord=&tsn=0&t=1455693188126&_=1455692977408' -H 'Cookie: SUV=00A27B2BB73D015554D9EC5137A6D159; ssuid=6215908745; SUID=2E0D8FDB66CA0D0A0000000055323CAB; usid=g6pDWznVhdOwAWDb; CXID=9621B02E3A96A6AB3F34DB9257660015; SMYUV=1448346711521049; _ga=GA1.2.1632917054.1453002662; ABTEST=8|1455514045|v1; weixinIndexVisited=1; ad=G7iNtZllll2QZQvQlllllVbxBJtlllllNsFMpkllllUlllllRTDll5@@@@@@@@@@; SNUID=C1B8F6463A3F10F2A42630AD3BA7E3E1; ppinf=5|1455520623|1456730223|Y2xpZW50aWQ6NDoyMDE3fGNydDoxMDoxNDU1NTIwNjIzfHJlZm5pY2s6NzpQZWdhc3VzfHRydXN0OjE6MXx1c2VyaWQ6NDQ6NENDQTE0NDVEMTg4OTRCMTY1MUEwMENDQUNEMEQxNThAcXEuc29odS5jb218dW5pcW5hbWU6NzpQZWdhc3VzfA; pprdig=Xmd5TMLPOARs3V2jIAZo-5UJDINIE0oFY97uU510_JOZm2-uu5TnST5KKW3oDgJY6-xd66wDhsb4Nm8wbOh1FCPohYO12b1kCrFoe-WUPrvg9JSqC72rjagjOlDg-JX72LcIjFOhsj7l_YGuaJpDrjFPoqy39C0AReCpmVcI5SM; PHPSESSID=e8vhf5d36raupjdb73k1rp7le5; SUIR=C1B8F6463A3F10F2A42630AD3BA7E3E1; sct=21; ppmdig=145569047300000087b07d5762b93c817f4868607c9ba98c; LSTMV=769%2C99; LCLKINT=47772; IPLOC=CN2200' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.103 Safari/537.36' -H 'Accept: text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01' -H 'Referer: http://weixin.sogou.com/gzh?openid=oIWsFt2uCBiQ3mWa2BSUtmdKD3gs&amp;ext=lA5I5al3X8DLRO7Ypz8g44dD75TkiekfFoGEDMmpUgIjEtQirDGcaSXT-vwsAyxo' -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --compressed
     """
 
-    def __init__(self, wechat_name, col_name='wechat_post'):
+    def __init__(self, wechat_name, col_name='wechat_post',
+                 media_col_name="wechat_media"):
         self.col = get_collection(CONFIG.MONGO.DATABASE, col_name)
+        self.media_col = get_collection(CONFIG.MONGO.DATABASE, media_col_name)
         self.name = wechat_name    # 微信公众号名称
         self.key = '_'.join([self.__class__.__name__, self.name]).upper()
         if self.headers is None:
@@ -158,6 +161,7 @@ class SougouWechat:
                     time.sleep(1.5)     # sougou频率限制
                     self.logger.info(page_url)
                     self.fetch_page(page_url)
+                    # self.fetch_ori_page(page_url)
             except DocumentExistsException:
                 self.logger.info("更新完毕")
                 break
@@ -188,7 +192,9 @@ class SougouWechat:
             raise Exception("retry")
 
     def fetch_ori_page(self, page_url):
-        """拿到单个文章页面，在文章url里加上参数f=json可以直接得到json格式的数据"""
+        """拿到单个文章页面，在文章url里加上参数f=json可以直接得到
+        json格式的数据。
+        """
         # 先拿到搜狗跳转到微信文章的地址
         pre_r = requests.get(page_url, headers=self.headers)
         wechat_url = pre_r.url.split('#')[0] + '&f=json'
@@ -217,7 +223,9 @@ class SougouWechat:
         )
 
     def fetch_page(self, page_url):
-        """拿到单个文章页面，在文章url里加上参数f=json可以直接得到json格式的数据"""
+        """拿到单个文章页面，在文章url里加上参数f=json可以直接得到json格式
+        的数据，处理json拿到需要的字段。
+        """
         # 先拿到搜狗跳转到微信文章的地址
         pre_r = requests.get(page_url, headers=self.headers)
         wechat_url = pre_r.url.split('#')[0] + '&f=json'
@@ -235,12 +243,16 @@ class SougouWechat:
         o = json.loads(r.text)
         fields = {'cdn_url', 'nick_name', 'title', 'content', 'desc',
                   'link', 'ori_create_time'}
+        media_fields = {'round_head_img', 'nick_name', 'signature'}
+        media_dict = {k: o.get(k) for k in media_fields}
         article_dict = {k: o.get(k) for k in fields}
+
         if self.col.find_one(dict(nick_name=self.name, title=o['title'])):
             raise DocumentExistsException("article exist")
         if o['title'] and o['content']:
             article_dict['nick_name'] = self.name
             article_dict['url'] = wechat_url
+            del article_dict['content']
             self.col.update(
                 {
                     '_id': gid()
@@ -250,6 +262,16 @@ class SougouWechat:
                 },
                 True
             )
+
+        # http://mp.weixin.qq.com/s?__biz=MjM5NjAxMDc4MA==&mid=404900944&idx=1&sn=fe2d53ce562ee51e7163a60d4c95484a#rd
+        biz = extract('__biz=', '==', article_dict['link'])
+        self.media_col.update(
+            {'_id': biz},
+            {
+                '$set': media_dict
+            },
+            True
+        )
 
     def fetch(self, update=False):
         url = self.search()
