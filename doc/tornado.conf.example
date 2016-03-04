@@ -1,0 +1,38 @@
+[group:tornadoes]
+programs=tornado-8000,tornado-8001,tornado-8002,tornado-8003
+
+[program:tornado-8000]
+command=python /home/wnn/program/picwall/app.py --port=8000
+directory=/home/wnn/program/picwall
+user=root
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/tornado.log
+loglevel=info
+
+[program:tornado-8001]
+command=python /home/wnn/program/picwall/app.py --port=8001
+directory=/home/wnn/program/picwall
+user=root
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/tornado.log
+loglevel=info
+
+[program:tornado-8002]
+command=python /home/wnn/program/picwall/app.py --port=8002
+directory=/home/wnn/program/picwall
+user=root
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/tornado.log
+loglevel=info
+
+[program:tornado-8003]
+command=python /home/wnn/program/picwall/app.py --port=8003
+directory=/home/wnn/program/picwall
+user=root
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/tornado.log
+loglevel=info
