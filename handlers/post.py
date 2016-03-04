@@ -30,7 +30,6 @@ class IndexHandler(BaseHandler):
     @coroutine
     def get(self, page=None):
         nick_name = self.get_query_argument('nick_name', None)
-        print(nick_name)
         try:
             page = max(1, int(page)) if page else 1
         except TypeError:
