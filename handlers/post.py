@@ -16,7 +16,7 @@ from lib.json_tools import bson_to_json
 class IndexHandler(BaseHandler):
     @property
     def _db(self):
-        return self.application._motor.wechat_post
+        return self.application._motor
 
     def page_url(self, page_str):
         query_string = self.request.query
@@ -30,15 +30,16 @@ class IndexHandler(BaseHandler):
     @coroutine
     def get(self, page=None):
         nick_name = self.get_query_argument('nick_name', None)
+        print(nick_name)
         try:
             page = max(1, int(page)) if page else 1
         except TypeError:
             page = 1
         posts_per_page = CONFIG.SITE.POSTS_PER_PAGE
         if nick_name is not None:
-            cursor = self._db.find({'nick_name': nick_name})
+            cursor = self._db.wechat_post.find({'nick_name': nick_name})
         else:
-            cursor = self._db.find()
+            cursor = self._db.wechat_post.find()
         cnt = yield cursor.count()
         pages = max(1, int(cnt / posts_per_page))
         page = min(page, pages) if page >= 1 else 1
@@ -57,7 +58,8 @@ class IndexHandler(BaseHandler):
         prev_url = None if page == 1 else self.page_url(str(page-1))
         next_url = None if page >= pages else self.page_url(str(page+1))
         self.render('index.html', posts=posts, page=page, pages=pages,
-                    prev_url=prev_url, next_url=next_url)
+                    prev_url=prev_url, next_url=next_url,
+                    site_url=CONFIG.SITE.URL)
 
 
 URL_ROUTES = [
