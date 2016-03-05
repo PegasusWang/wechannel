@@ -56,9 +56,11 @@ class IndexHandler(BaseHandler):
 
         prev_url = None if page == 1 else self.page_url(str(page-1))
         next_url = None if page >= pages else self.page_url(str(page+1))
-        self.render('index.html', posts=posts, page=page, pages=pages,
+        self.render('index.html',
+                    nick_name=nick_name,
+                    posts=posts, page=page, pages=pages,
                     prev_url=prev_url, next_url=next_url,
-                    site_url=CONFIG.SITE.URL)
+                    site=CONFIG.SITE)
 
 
 URL_ROUTES = [

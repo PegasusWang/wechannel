@@ -1,70 +1,77 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, user-scalable=no">
-    <meta name="description" content="分享有价值的微信公众号" />
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, user-scalable=no">
+        <meta name="description" content="分享有价值的微信公众号" />
 
-    <title>微频道</title>
+        <title>微频道</title>
 
-    <meta name="HandheldFriendly" content="True" />
-    <meta name="viewport" content="width=device-width, user-scalable=no">
+        <meta name="HandheldFriendly" content="True" />
+        <meta name="viewport" content="width=device-width, user-scalable=no">
 
-    <link rel="stylesheet" href="${static_url("libraries/bootstrap/css/bootstrap.min.css")}" charset="utf8"/>
-    <link rel="stylesheet" href="${static_url("libraries/prism/prism.css")}" charset="utf8" />
-    <link rel="stylesheet" href="${static_url("libraries/bootstrap-social/css/bootstrap-social.css")}"charset="utf8" />
-    <link rel="stylesheet" href="${static_url("libraries/bootstrap-social/css/font-awesome.css")}" charset="utf8" />
-    <link rel="stylesheet/less" href="${static_url("css/style.less")}" charset="utf8" />
-    <script src="${static_url("libraries/less/less.min.js")}"></script>
+        <link rel="stylesheet" href="${static_url("libraries/bootstrap/css/bootstrap.min.css")}" charset="utf8"/>
+        <link rel="stylesheet" href="${static_url("libraries/prism/prism.css")}" charset="utf8" />
+        <link rel="stylesheet" href="${static_url("libraries/bootstrap-social/css/bootstrap-social.css")}"charset="utf8" />
+        <link rel="stylesheet" href="${static_url("libraries/bootstrap-social/css/font-awesome.css")}" charset="utf8" />
+        <link rel="stylesheet/less" href="${static_url("css/style.less")}" charset="utf8" />
+        <script src="${static_url("libraries/less/less.min.js")}"></script>
 
-    <link rel="canonical" href="http://localhost:2368/" />
-    <meta name="referrer" content="origin" />
-    <link rel="next" href="http://localhost:2368/page/2/" />
 
-</head>
+    </head>
 
-<body class="home-template">
+    <body class="home-template">
 
-    <nav class="navbar navbar-default">
+        <nav class="navbar navbar-default">
 
-        <div class="container limit-width">
+            <div class="container limit-width">
 
-            <div class="navbar-header">
+                <div class="navbar-header">
 
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span>
-                </button>
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span>
+                    </button>
 
-                    <a class="navbar-brand" href="http://localhost:2368">test</a>
+                    <a class="navbar-brand" href="${site.URL}">${site.TITLE}</a>
+
+                </div>
+
+                <div class="collapse navbar-collapse" id="navbar">
+                    <ul class="nav navbar-nav">
+                        % if nick_name:
+                            <li><a href="http://localhost:8888/" class="hvr-fade">${nick_name}</a></li>
+                        % else:
+                            <li><a href="http://localhost:8888/" class="hvr-fade">段子 · 趣闻</a></li>
+                            <li><a href="http://localhost:8888/" class="hvr-fade">段子 · 趣闻</a></li>
+                            <li><a href="http://localhost:8888/" class="hvr-fade">段子 · 趣闻</a></li>
+                            <li><a href="http://localhost:8888/" class="hvr-fade">段子 · 趣闻</a></li>
+                            <li><a href="http://localhost:8888/" class="hvr-fade">段子 · 趣闻</a></li>
+                        % endif
+                    </ul>
+                </div>
+
 
             </div>
+        </nav>
 
-            <div class="collapse navbar-collapse" id="navbar">
-    <ul class="nav navbar-nav">
-            <li><a href="http://localhost:2368/" class="hvr-fade">Home</a></li>
-    </ul>
-</div>
+        <%block name="tpl_body"> </%block>
+        <%block name="tpl_footer"> </%block>
 
+        <%include file="footer.html"/>
 
-        </div>
-    </nav>
-
-    <%block name="tpl_body"> </%block>
-    <%block name="tpl_footer"> </%block>
-
-    <script type="text/javascript">
-        if (typeof jQuery == 'undefined') {
-            document.write('<script type="text/javascript" src="${static_url("libraries/jquery/jquery-1.11.3.min.js")}"></'+'script>');
-        }
+        <script type="text/javascript">
+if (typeof jQuery == 'undefined') {
+    document.write('<script type="text/javascript" src="${static_url("libraries/jquery/jquery-1.11.3.min.js")}"></'+'script>');
+}
     </script>
     <script src="${static_url("libraries/bootstrap/js/bootstrap.min.js")}"></script>
     <script src="${static_url("libraries/imagesloaded/imagesloaded.pkgd.min.js")}"></script>
     <script src="${static_url("libraries/masonry/masonry.pkgd.min.js")}"></script>
     <script src="${static_url("libraries/prism/prism.js")}"></script>
     <script src="${static_url("js/index.js")}"></script>
-</body>
+    </body>
 
 </html>
 
