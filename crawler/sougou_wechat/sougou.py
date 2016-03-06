@@ -11,9 +11,10 @@ import traceback
 
 import six.moves.urllib.parse as urlparse   # for py2 and py3 use six
 from six.moves.urllib.parse import urlencode, quote
+from bs4 import BeautifulSoup
 
 from config.config import CONFIG
-from extract import extract
+from extract import extract, extract_all
 from iwgc import name_list
 from lib._db import get_collection
 from lib._db import redis_client as _redis
@@ -116,8 +117,15 @@ class SougouWechat:
         while retries > 0:
             self.logger.info('retry search %s %d' % (self.name, retries))
             html = requests.get(query_url, headers=self.headers).text
-            href = extract('<div class="wx-rb bg-blue wx-rb_v1 _item" href="',
+            soup = BeautifulSoup(html)
+            href_list = extract_all('<div class="wx-rb bg-blue wx-rb_v1 _item" href="',
                            '"', html)
+            item_tag_li = soup.find_all('div',
+                                        class_="wx-rb bg-blue wx-rb_v1 _item")
+            for item_tag in item_tag_li:
+                _href = item_tag.href
+                _title = item_tag.find('div', class_='txt-box').text
+                print(_href, _title)
             if href:
                 break
             else:
