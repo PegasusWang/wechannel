@@ -118,15 +118,20 @@ class SougouWechat:
             self.logger.info('retry search %s %d' % (self.name, retries))
             html = requests.get(query_url, headers=self.headers).text
             soup = BeautifulSoup(html)
-            href_list = extract_all('<div class="wx-rb bg-blue wx-rb_v1 _item" href="',
-                           '"', html)
             item_tag_li = soup.find_all('div',
                                         class_="wx-rb bg-blue wx-rb_v1 _item")
-            for item_tag in item_tag_li:
-                _href = item_tag.href
-                _title = item_tag.find('div', class_='txt-box').text
-                print(_href, _title)
-            if href:
+            href = None
+            try:
+                for item_tag in item_tag_li:
+                    _href = item_tag.get('href')
+                    _title = item_tag.find(class_='txt-box').h3.text
+                    if _title.strip() == self.name.strip():
+                        href = _href
+            except Exception:
+                self.logger.info('found %s failed' % self.name)
+                continue
+
+            if href is not None:
                 break
             else:
                 self.update_headers()
@@ -258,6 +263,7 @@ class SougouWechat:
         if self.col.find_one(dict(nick_name=self.name, title=o['title'])):
             raise DocumentExistsException("article exist")
         if o['title'] and o['content']:
+            self.logger.info('title : %s', o['title'])
             article_dict['nick_name'] = self.name
             article_dict['url'] = wechat_url
             del article_dict['content']
