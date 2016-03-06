@@ -61,6 +61,21 @@ def name_list(_id):
     return [s.strip() for s in set(l)]
 
 
+def set_my_name_list(_id):
+    """手工设置需要爬的帐号，选取高质量内容"""
+    tag = {
+        '1': ['36氪', '创见']
+    }
+
+    COL.update(
+        {'_id': _id},
+        {
+            '$set': {'name_list': res}
+        },
+        upsert=True
+    )
+
+
 if __name__ == '__main__':
     wechat_list()
     for i in name_list(1):
