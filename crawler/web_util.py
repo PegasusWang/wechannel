@@ -96,13 +96,15 @@ _get = requests.get
 def get(*args, **kwds):
     if 'timeout' not in kwds:
         kwds['timeout'] = 10
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36',
+    }
     if 'headers' not in kwds:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36',
-        }
         kwds['headers'] = headers
+    else:
+        kwds['headers']['User-Agent'] = headers['User-Agent']
 
     return _get(*args, **kwds)
 
 requests.get = get
-
