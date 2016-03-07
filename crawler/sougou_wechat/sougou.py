@@ -30,6 +30,10 @@ class DocumentExistsException(Exception):
     pass
 
 
+class ExceedLimitException(Exception):
+    pass
+
+
 def logged(class_):
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -44,11 +48,14 @@ class SougouWechat:
     curl 'http://weixin.sogou.com/gzhjs?openid=oIWsFt2uCBiQ3mWa2BSUtmdKD3gs&ext=&cb=sogou.weixin_gzhcb&page=13&gzhArtKeyWord=&tsn=0&t=1455693188126&_=1455692977408' -H 'Cookie: SUV=00A27B2BB73D015554D9EC5137A6D159; ssuid=6215908745; SUID=2E0D8FDB66CA0D0A0000000055323CAB; usid=g6pDWznVhdOwAWDb; CXID=9621B02E3A96A6AB3F34DB9257660015; SMYUV=1448346711521049; _ga=GA1.2.1632917054.1453002662; ABTEST=8|1455514045|v1; weixinIndexVisited=1; ad=G7iNtZllll2QZQvQlllllVbxBJtlllllNsFMpkllllUlllllRTDll5@@@@@@@@@@; SNUID=C1B8F6463A3F10F2A42630AD3BA7E3E1; ppinf=5|1455520623|1456730223|Y2xpZW50aWQ6NDoyMDE3fGNydDoxMDoxNDU1NTIwNjIzfHJlZm5pY2s6NzpQZWdhc3VzfHRydXN0OjE6MXx1c2VyaWQ6NDQ6NENDQTE0NDVEMTg4OTRCMTY1MUEwMENDQUNEMEQxNThAcXEuc29odS5jb218dW5pcW5hbWU6NzpQZWdhc3VzfA; pprdig=Xmd5TMLPOARs3V2jIAZo-5UJDINIE0oFY97uU510_JOZm2-uu5TnST5KKW3oDgJY6-xd66wDhsb4Nm8wbOh1FCPohYO12b1kCrFoe-WUPrvg9JSqC72rjagjOlDg-JX72LcIjFOhsj7l_YGuaJpDrjFPoqy39C0AReCpmVcI5SM; PHPSESSID=e8vhf5d36raupjdb73k1rp7le5; SUIR=C1B8F6463A3F10F2A42630AD3BA7E3E1; sct=21; ppmdig=145569047300000087b07d5762b93c817f4868607c9ba98c; LSTMV=769%2C99; LCLKINT=47772; IPLOC=CN2200' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.103 Safari/537.36' -H 'Accept: text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01' -H 'Referer: http://weixin.sogou.com/gzh?openid=oIWsFt2uCBiQ3mWa2BSUtmdKD3gs&amp;ext=lA5I5al3X8DLRO7Ypz8g44dD75TkiekfFoGEDMmpUgIjEtQirDGcaSXT-vwsAyxo' -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --compressed
     """
 
-    def __init__(self, wechat_name, col_name='wechat_post',
+    def __init__(self, wechat_name, tag_id, limit=10,
+                 col_name='wechat_post',
                  media_col_name="wechat_media"):
         self.col = get_collection(CONFIG.MONGO.DATABASE, col_name)
         self.media_col = get_collection(CONFIG.MONGO.DATABASE, media_col_name)
         self.name = wechat_name    # 微信公众号名称
+        self.tag_id = tag_id
+        self.limit = limit
         self.key = '_'.join([self.__class__.__name__, self.name]).upper()
         if self.headers is None:
             self.update_headers()
@@ -175,7 +182,7 @@ class SougouWechat:
                     self.logger.info(page_url)
                     self.fetch_page(page_url)
                     # self.fetch_ori_page(page_url)
-            except DocumentExistsException:
+            except (DocumentExistsException, ExceedLimitException):
                 self.logger.info("更新完毕")
                 break
             except Exception:
@@ -239,6 +246,9 @@ class SougouWechat:
         """拿到单个文章页面，在文章url里加上参数f=json可以直接得到json格式
         的数据，处理json拿到需要的字段。
         """
+        if self.col.find(dict(nick_name=self.name)).count() > self.limit:
+            self.logger.info("超出数目限制 %s" % self.name)
+            raise ExceedLimitException("exceed limit")
         # 先拿到搜狗跳转到微信文章的地址
         pre_r = requests.get(page_url, headers=self.headers)
         wechat_url = pre_r.url.split('#')[0] + '&f=json'
@@ -250,6 +260,7 @@ class SougouWechat:
         self.logger.info(wechat_url)
         if self.col.find_one(dict(nick_name=self.name, url=wechat_url)):
             raise DocumentExistsException("article exist")
+
         if r.status_code != 200:
             return
 
@@ -266,6 +277,7 @@ class SougouWechat:
             self.logger.info('title : %s', o['title'])
             article_dict['nick_name'] = self.name
             article_dict['url'] = wechat_url
+            article_dict['tag_id'] = self.tag_id
             del article_dict['content']
             self.col.update(
                 {
@@ -301,15 +313,15 @@ class SougouWechat:
 
 def fetch(name):
     if name:
-        s = SougouWechat(name)
+        s = SougouWechat(name, tag_id=17, limit=10)
         s.fetch()
 
 
-def fetch_all(_id=1, update=False):
-    name_li = name_list(_id=_id)
+def fetch_all(_id=1, li_name="name_list", update=False):
+    name_li = name_list(_id, li_name)
     name_li.sort()
     for index, name in enumerate(name_li):
-        s = SougouWechat(name)
+        s = SougouWechat(name, tag_id=_id, limit=2)
         if update:
             s.update()
         else:
@@ -318,10 +330,12 @@ def fetch_all(_id=1, update=False):
 
 
 if __name__ == '__main__':
-    #fetch_all(7)
-    #fetch_all(1)
+    '''
     try:
         name = sys.argv[1]
     except IndexError:
         name = ""
     fetch(name)
+    '''
+    for _id in range(16, 22):
+        fetch_all(_id, 'need_name_list')
