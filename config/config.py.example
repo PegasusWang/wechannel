@@ -17,5 +17,6 @@ class CONFIG:
         PASSWORD = ""
 
     class SITE:
+        URL = "http://127.0.0.1:8888"
+        TITLE = "微阅读"
         POSTS_PER_PAGE = 18
-        URL = ""
