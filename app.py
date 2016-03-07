@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 from lib import _db
-from lib._db import get_db
+from lib._db import get_mongodb
 from config.config import CONFIG
 import os
 import tornado.httpserver
@@ -19,7 +19,7 @@ class App(tornado.web.Application):
     def __init__(self):
         tornado.web.Application.__init__(self, url_patterns, **settings)
         self._redis = _db.redis_client
-        self._motor = get_db(CONFIG.MONGO.DATABASE, client='motor')
+        self._motor = get_mongodb(CONFIG.MONGO.DATABASE, client='motor')
         connect(CONFIG.MONGO.DATABASE, host=CONFIG.MONGO.HOST,
                 port=CONFIG.MONGO.PORT,
                 io_loop=tornado.ioloop.IOLoop.current())    # motorengine
