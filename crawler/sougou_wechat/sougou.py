@@ -98,6 +98,7 @@ class SougouWechat:
             cookie_str = headers.get('Set-Cookie') + '; ' + \
                 SougouWechat.getSUV()
 
+            print(cookie_str)
             # 跳过没有设置SNUID的
             if 'SUID' in cookie_str and 'SNUID' in cookie_str:
                 return cookie_str

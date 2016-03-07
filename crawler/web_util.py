@@ -98,7 +98,7 @@ def get(*args, **kwds):
         kwds['timeout'] = 10
     if 'headers' not in kwds:
         headers = {
-            'User-Agent': 'Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36',
         }
         kwds['headers'] = headers
 
