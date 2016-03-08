@@ -38,7 +38,10 @@ def main():
             for item in files:
                 tornado.autoreload.watch(os.path.join(root, item))
 
-    tornado.ioloop.IOLoop.current().start()
+    try:
+        tornado.ioloop.IOLoop.current().start()
+    except:
+        tornado.ioloop.IOLoop.current().stop()
 
 
 if __name__ == "__main__":

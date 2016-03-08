@@ -20,3 +20,10 @@ class CONFIG:
         URL = "http://127.0.0.1:8888"
         TITLE = "微阅读"
         POSTS_PER_PAGE = 18
+
+    class CRAWLER:
+        LIMIT = 50
+        USE_PROXY = True
+        PROXIES = {'http': 'socks5://127.0.0.1:9050',
+                   'https': 'socks5://127.0.0.1:9050'}
+        PROXIES_PASSWORD = ''

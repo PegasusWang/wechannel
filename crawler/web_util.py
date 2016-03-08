@@ -7,10 +7,14 @@ chrome有个功能，对于请求可以直接右键copy as curl，然后在命�
 http://stackoverflow.com/questions/23118249/whats-the-difference-between-request-payload-vs-form-data-as-seen-in-chrome
 """
 
+import os
 import re
 from functools import wraps
 import traceback
 import requests
+import requesocks
+import _env
+from config.config import CONFIG
 
 
 def encode_to_dict(encoded_str):
@@ -89,7 +93,13 @@ def retry(retries=3):
     return _retry
 
 
-_get = requests.get
+session = requesocks.session()
+session.proxies = CONFIG.CRAWLER.PROXIES
+
+if CONFIG.CRAWLER.USE_PROXY:
+    _get = session.get
+else:
+    _get = requests.get
 
 
 @retry(5)
@@ -107,4 +117,6 @@ def get(*args, **kwds):
 
     return _get(*args, **kwds)
 
-requests.get = get
+
+def change_ip():
+    os.system("""(echo authenticate '"%s"'; echo signal newnym; echo quit) | nc localhost 9051"""%CONFIG.CRAWLER.PROXIES_PASSWORD)
