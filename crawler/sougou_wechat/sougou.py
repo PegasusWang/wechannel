@@ -96,12 +96,15 @@ class SougouWechat:
             # 获取SNUID
             cookie = get(url, headers=cls.get_headers())
             headers = cookie.headers
-            cookie_str = headers.get('Set-Cookie') + '; ' + \
-                SougouWechat.getSUV()
+            try:
+                cookie_str = headers.get('Set-Cookie') + '; ' + \
+                    SougouWechat.getSUV()
+            except Exception:
+                cookie_str = None
 
-            print(cookie_str)
+            cls.logger.info(cookie_str)
             # 跳过没有设置SNUID的
-            if 'SUID' in cookie_str and 'SNUID' in cookie_str:
+            if cookie_str and 'SUID' in cookie_str and 'SNUID' in cookie_str:
                 return cookie_str
 
             tries += 1
