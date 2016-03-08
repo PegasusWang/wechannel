@@ -118,6 +118,10 @@ def get(*args, **kwds):
     return _get(*args, **kwds)
 
 
+r = get('https://api.ipify.org?format=json')
+print("Init IP is: " + r.text.replace("\n", ""))
+
+
 def change_ip():
     os.system("""(echo authenticate '"%s"'; echo signal newnym; echo quit) | nc localhost 9051"""%CONFIG.CRAWLER.PROXIES_PASSWORD)
     url = 'https://api.ipify.org?format=json'
