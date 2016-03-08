@@ -93,7 +93,7 @@ def retry(retries=3):
     return _retry
 
 
-session = requesocks.session()
+session = requesocks.session()    # socks proxy requests
 session.proxies = CONFIG.CRAWLER.PROXIES
 
 if CONFIG.CRAWLER.USE_PROXY:
@@ -120,3 +120,6 @@ def get(*args, **kwds):
 
 def change_ip():
     os.system("""(echo authenticate '"%s"'; echo signal newnym; echo quit) | nc localhost 9051"""%CONFIG.CRAWLER.PROXIES_PASSWORD)
+    url = 'https://api.ipify.org?format=json'
+    r = get(url)
+    print("Now IP is: " + r.text.replace("\n", ""))
