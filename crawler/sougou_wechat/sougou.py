@@ -321,7 +321,7 @@ class SougouWechat:
 
 def fetch(name):
     if name:
-        s = SougouWechat(name, tag_id=17, limit=10)
+        s = SougouWechat(name, tag_id=17, limit=CONFIG.CRAWLER.LIMIT)
         s.fetch()
 
 
@@ -329,7 +329,7 @@ def fetch_all(_id=1, li_name="name_list", update=False):
     name_li = name_list(_id, li_name)
     name_li.sort()
     for index, name in enumerate(name_li):
-        s = SougouWechat(name, tag_id=_id, limit=2)
+        s = SougouWechat(name, tag_id=_id, limit=CONFIG.CRAWLER.LIMIT)
         if update:
             s.update()
         else:
