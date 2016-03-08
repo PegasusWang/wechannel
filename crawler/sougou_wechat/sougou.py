@@ -87,7 +87,6 @@ class SougouWechat:
     def get_cookie_str(cls):
         """生成一个搜狗微信的cookie并返回
         """
-        tries = 0
         while True:
             time.sleep(5)
             url = 'http://weixin.sogou.com/weixin?query=%s' % \
@@ -102,22 +101,21 @@ class SougouWechat:
             except Exception:
                 cookie_str = None
 
-            cls.logger.info(cookie_str)
+            cls.logger.info('cookie_str: %s' % cookie_str)
             # 跳过没有设置SNUID的
             if cookie_str and 'SUID' in cookie_str and 'SNUID' in cookie_str:
                 return cookie_str
-
-            tries += 1
-            if CONFIG.CRAWLER.USE_PROXY and tries > 3:    # 更换ip
-                change_ip()
-
 
     @classmethod
     def update_headers(cls):
         cls.logger.info('*********updating cookies*********')
         _, headers, _ = parse_curl_str(cls.curl_str)
         headers['Cookie'] = cls.get_cookie_str()
-        cls.headers = headers
+        if headers['Cookie'] is None:
+            change_ip()
+            cls.update_headers()
+        else:
+            cls.headers = headers
 
     def search(self, retries=3):
         """搜索搜狗微信公众号并返回公众号文章列表页面,返回列表格式如下
