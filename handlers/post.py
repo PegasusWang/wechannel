@@ -4,66 +4,67 @@
 
 from tornado.gen import coroutine
 from tornado.web import url
-from tornado.util import ObjectDict
 from six.moves.urllib.parse import urljoin
 import _env
 from .base import BaseHandler
 from config.config import CONFIG
-from lib.date_util import datestr_from_stamp
-from lib.json_tools import bson_to_json
+from model.post import WechatPost
 
 
-class IndexHandler(BaseHandler):
-    @property
-    def _db(self):
-        return self.application._motor
+class Pagination(object):
+    def __init__(self, request, page, cnt, limit=CONFIG.SITE.POSTS_PER_PAGE):
+        try:
+            page = max(1, int(page)) if page else 1
+        except TypeError:
+            page = 1
+        self.request = request    # RequestHanler().request
+        self.cnt = cnt    # all nums
+        self.pages = max(1, int(cnt/limit))
+        self.page = min(page, self.pages) if page >= 1 else 1
 
-    def page_url(self, page_str):
-        query_string = self.request.query
+    def page_url(self, page):
+        query_string = self.request.query    # query string
         request_url = self.request.full_url().rsplit('/page')[0]
-        url = urljoin(request_url, '/page/' + page_str)
+        url = urljoin(request_url, '/page/' + str(page))
         if query_string:
             return url + '?' + query_string
         else:
             return url
 
+    @property
+    def prev_url(self):
+        return None if self.page == 1 else self.page_url(self.page-1)
+
+    @property
+    def next_url(self):
+        return None if self.page >= self.pages else self.page_url(self.page+1)
+
+
+class IndexHandler(BaseHandler):
+
     @coroutine
-    def get(self, page=None):
+    def get(self, page=1):
         nick_name = self.get_query_argument('nick_name', None)
-        try:
-            page = max(1, int(page)) if page else 1
-        except TypeError:
-            page = 1
-        posts_per_page = CONFIG.SITE.POSTS_PER_PAGE
+        limit = CONFIG.SITE.POSTS_PER_PAGE
         if nick_name is not None:
-            cursor = self._db.wechat_post.find({'nick_name': nick_name})
+            condition = {'nick_name': nick_name}
         else:
-            cursor = self._db.wechat_post.find()
-        cnt = yield cursor.count()
-        pages = max(1, int(cnt / posts_per_page))
-        page = min(page, pages) if page >= 1 else 1
-        posts = []
-        pre_url = 'http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl='
+            condition = {}
+        cnt = yield WechatPost.count(condition)
+        order_by = [('ori_create_time', -1)]
+        skip = (int(page)-1) * limit
+        posts = yield WechatPost.query(condition, order_by, limit, skip)
+        p = Pagination(self.request, page, cnt, CONFIG.SITE.POSTS_PER_PAGE)
 
-        cursor.sort([('ori_create_time', -1)]).limit(posts_per_page).skip(
-            (page-1)*posts_per_page)
-        for doc in (yield cursor.to_list(length=posts_per_page)):
-            post = bson_to_json(doc)
-            post['image'] = pre_url + post['cdn_url']
-            post['date'] = datestr_from_stamp(post['ori_create_time'],
-                                              '%Y-%m-%d')
-            posts.append(ObjectDict(post))
-
-        prev_url = None if page == 1 else self.page_url(str(page-1))
-        next_url = None if page >= pages else self.page_url(str(page+1))
         self.render('index.html',
                     nick_name=nick_name,
-                    posts=posts, page=page, pages=pages,
-                    prev_url=prev_url, next_url=next_url,
+                    posts=posts, page=p.page, pages=p.pages,
+                    prev_url=p.prev_url, next_url=p.next_url,
                     site=CONFIG.SITE)
 
 
 URL_ROUTES = [
     url(r'/', IndexHandler),
     url(r'/page/(\d*)/?', IndexHandler),
+    url(r'/tag/(\d*)/?', IndexHandler),
 ]
