@@ -187,7 +187,7 @@ class SougouWechat:
 
             try:
                 for page_url in url_list:
-                    time.sleep(1.5)     # sougou频率限制
+                    time.sleep(random.randint(3, 10))     # sougou频率限制
                     self.logger.info(page_url)
                     self.fetch_page(page_url)
                     # self.fetch_ori_page(page_url)
@@ -346,5 +346,7 @@ if __name__ == '__main__':
         name = ""
     fetch(name)
     '''
-    for _id in range(16, 22):
+    to_fetch_id = list(range(16, 22))
+    random.shuffle(to_fetch_id
+    for _id in to_fetch_id:
         fetch_all(_id, 'need_name_list')
