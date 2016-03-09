@@ -25,7 +25,9 @@ class Pagination(object):
     def page_url(self, page):
         query_string = self.request.query    # query string
         request_url = self.request.full_url().rsplit('/page')[0]
-        url = urljoin(request_url, '/page/' + str(page))
+        if not request_url.endswith('/'):
+            request_url += '/'
+        url = urljoin(request_url, 'page/' + str(page))
         if query_string:
             return url + '?' + query_string
         else:
@@ -63,8 +65,26 @@ class IndexHandler(BaseHandler):
                     site=CONFIG.SITE)
 
 
+class TagHandler(BaseHandler):
+    @coroutine
+    def get(self, tag_id=16, page=1):
+        limit = CONFIG.SITE.POSTS_PER_PAGE
+        condition = {'tag_id': int(tag_id)}
+        cnt = yield WechatPost.count(condition)
+        order_by = [('ori_create_time', -1)]
+        skip = (int(page)-1) * limit
+        posts = yield WechatPost.query(condition, order_by, limit, skip)
+        p = Pagination(self.request, page, cnt, CONFIG.SITE.POSTS_PER_PAGE)
+
+        self.render('index.html',
+                    posts=posts, page=p.page, pages=p.pages,
+                    prev_url=p.prev_url, next_url=p.next_url,
+                    site=CONFIG.SITE)
+
+
 URL_ROUTES = [
     url(r'/', IndexHandler),
     url(r'/page/(\d*)/?', IndexHandler),
-    url(r'/tag/(\d*)/?', IndexHandler),
+    url(r'/tag/(\d+)/?', TagHandler),
+    url(r'/tag/(\d+)/page/(\d*)/?', TagHandler),
 ]

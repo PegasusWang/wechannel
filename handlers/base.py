@@ -54,10 +54,8 @@ class BaseHandler(RequestHandler):
 
     def write_error(self, status_code, **kwargs):
         if status_code == 404:
-            print('404')
             self.render('404.html')
         elif status_code == 500:
-            print('500')
             self.render('500.html')
         else:
             super(BaseHandler, self).write_error(status_code, **kwargs)

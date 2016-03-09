@@ -347,6 +347,6 @@ if __name__ == '__main__':
     fetch(name)
     '''
     to_fetch_id = list(range(16, 22))
-    random.shuffle(to_fetch_id
+    random.shuffle(to_fetch_id)
     for _id in to_fetch_id:
         fetch_all(_id, 'need_name_list')
