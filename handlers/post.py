@@ -19,12 +19,15 @@ class Pagination(object):
         self.request = request    # RequestHanler().request
         self.cnt = cnt    # all nums
         self.pages = max(1, int(cnt/limit))
-        self.page = min(page, self.pages) if page >= 1 else 1
+        self.page = min(int(page), self.pages) if page >= 1 else 1
 
     def _validate_page(self, page):
         schema = {'page': {'type': 'integer', 'min': 1}}
         v = Validator(schema)
-        return v.validate({'page': page})
+        try:
+            return v.validate({'page': int(page)})
+        except Exception:
+            return False
 
     def page_url(self, page):
         query_string = self.request.query    # query string
