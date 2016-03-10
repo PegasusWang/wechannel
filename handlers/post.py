@@ -24,10 +24,7 @@ class Pagination(object):
     def _validate_page(self, page):
         schema = {'page': {'type': 'integer', 'min': 1}}
         v = Validator(schema)
-        if v.validate({'page': page}):
-            return True
-        else:
-            return False
+        return v.validate({'page': page})
 
     def page_url(self, page):
         query_string = self.request.query    # query string
