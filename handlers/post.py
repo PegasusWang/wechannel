@@ -4,12 +4,12 @@
 
 from tornado.gen import coroutine
 from tornado.web import url
+from cerberus import Validator
 from six.moves.urllib.parse import urljoin
 import _env
 from .base import BaseHandler
 from config.config import CONFIG
 from model.post import WechatPost
-from cerberus import Validator
 
 
 class Pagination(object):
