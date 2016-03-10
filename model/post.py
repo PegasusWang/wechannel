@@ -36,7 +36,7 @@ class WechatPost(object):
                                                   '%Y-%m-%d')
                 posts.append(ObjectDict(post))
             raise Return(posts)
-        except Exception:
+        except ValueError:
             traceback.print_exc()
             raise Return([])
 
