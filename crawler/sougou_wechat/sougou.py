@@ -19,6 +19,7 @@ from iwgc import name_list
 from lib._db import get_mongodb
 from lib._db import redis_client as _redis
 from lib.redis_tools import gid
+from lib.date_util import datestr_from_stamp
 from web_util import get, parse_curl_str, change_ip
 
 """搜狗微信爬虫，先根据公众号名字拿到列表页，如果第一个匹配就转到第一个搜索结果
@@ -27,10 +28,6 @@ from web_util import get, parse_curl_str, change_ip
 
 
 class DocumentExistsException(Exception):
-    pass
-
-
-class ExceedLimitException(Exception):
     pass
 
 
@@ -191,7 +188,7 @@ class SougouWechat:
                     self.logger.info(page_url)
                     self.fetch_page(page_url)
                     # self.fetch_ori_page(page_url)
-            except (DocumentExistsException, ExceedLimitException):
+            except DocumentExistsException:
                 self.logger.info("更新完毕")
                 break
             except Exception:
@@ -256,8 +253,20 @@ class SougouWechat:
         的数据，处理json拿到需要的字段。
         """
         if self.col.find(dict(nick_name=self.name)).count() > self.limit:
-            self.logger.info("超出数目限制 %s" % self.name)
-            raise ExceedLimitException("exceed limit")
+            oldest_doc = list(self.col.find(dict(nick_name=self.name)).\
+                              sort([('ori_create_time', 1)]).limit(1))[0]
+            oldest_doc_id = oldest_doc.get('_id')
+            self.col.remove({'_id': oldest_doc_id})
+            self.logger.info("%s:删除:%s : %s\n" %
+                (
+                    self.name,
+                    oldest_doc.get('title'),
+                    datestr_from_stamp(
+                        oldest_doc.get('ori_create_time'), '%Y-%m-%d'
+                    )
+                )
+            )
+
         # 先拿到搜狗跳转到微信文章的地址
         pre_r = get(page_url, headers=self.headers)
         wechat_url = pre_r.url.split('#')[0] + '&f=json'
@@ -283,7 +292,7 @@ class SougouWechat:
         if self.col.find_one(dict(nick_name=self.name, title=o['title'])):
             raise DocumentExistsException("article exist")
         if o['title'] and o['content']:
-            self.logger.info('title : %s', o['title'])
+            self.logger.info('save title : %s', o['title'])
             article_dict['nick_name'] = self.name
             article_dict['url'] = wechat_url
             article_dict['tag_id'] = self.tag_id

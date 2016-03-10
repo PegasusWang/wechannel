@@ -9,18 +9,25 @@ import _env
 from .base import BaseHandler
 from config.config import CONFIG
 from model.post import WechatPost
+from cerberus import Validator
 
 
 class Pagination(object):
     def __init__(self, request, page, cnt, limit=CONFIG.SITE.POSTS_PER_PAGE):
-        try:
-            page = max(1, int(page)) if page else 1
-        except TypeError:
+        if not self._validate_page(page):
             page = 1
         self.request = request    # RequestHanler().request
         self.cnt = cnt    # all nums
         self.pages = max(1, int(cnt/limit))
         self.page = min(page, self.pages) if page >= 1 else 1
+
+    def _validate_page(self, page):
+        schema = {'page': {'type': 'integer', 'min': 1}}
+        v = Validator(schema)
+        if v.validate({'page': page}):
+            return True
+        else:
+            return False
 
     def page_url(self, page):
         query_string = self.request.query    # query string
