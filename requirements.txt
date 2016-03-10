@@ -2,7 +2,9 @@
 # https://github.com/Damnever/pigar
 
 # _templates/default.html.py: 2
+# _templates/footer.html.py: 2
 # _templates/index.html.py: 2
+# _templates/pagination.html.py: 2
 # handlers/base.py: 6,7,9
 Mako == 1.0.2
 
@@ -12,16 +14,24 @@ motorengine == 0.9.0
 # app.py: 8,9,10,11,12
 # crawler/async_spider.py: 6
 # handlers/base.py: 5
-# handlers/post.py: 9,10,11
+# handlers/post.py: 5,6
+# model/post.py: 6,7
 # settings.py: 6,7,9
 # urls.py: 7
 tornado == 4.2.1
 
 # crawler/sougou_wechat/sougou.py: 12,13
+# handlers/post.py: 7
 six == 1.9.0
 
 # lib/_db.py: 8
 redis == 2.10.3
+
+# crawler/web_util.py: 15
+requesocks == 0.10.8
+
+# handlers/post.py: 12
+Cerberus == 0.9.2
 
 # lib/html_tools.py: 4
 html2text == 2015.6.21
@@ -29,9 +39,12 @@ html2text == 2015.6.21
 # lib/_db.py: 7
 motor == 0.5
 
-# crawler/web_util.py: 13
-# test/test_img.py: 6
-requests == 2.7.0
+# crawler/sougou_wechat/sougou.py: 14
+beautifulsoup4 == 4.3.2
 
 # lib/_db.py: 6
 pymongo == 2.8
+
+# crawler/web_util.py: 14
+# test/test_img.py: 6
+requests == 2.7.0
