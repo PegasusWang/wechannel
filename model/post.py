@@ -12,8 +12,8 @@ from lib.date_util import datestr_from_stamp
 
 
 class WechatPost(object):
-    col_name = 'wechat_post'
-    col = get_collection(CONFIG.MONGO.DATABASE, col_name, 'motor')
+    __collection__ = 'wechat_post'
+    col = get_collection(CONFIG.MONGO.DATABASE, __collection__, 'motor')
 
     @classmethod
     @coroutine
@@ -27,22 +27,25 @@ class WechatPost(object):
             if skip:
                 cursor.skip(skip)
 
-            pre_url = 'http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl='
             posts = []
             for doc in (yield cursor.to_list(length=limit)):
-                post = bson_to_json(doc)
-                post['image'] = pre_url + post['cdn_url']
-                post['date'] = datestr_from_stamp(post['ori_create_time'],
-                                                  '%Y-%m-%d')
-                posts.append(ObjectDict(post))
+                post = cls.to_dict(doc)
+                posts.append(post)
             raise Return(posts)
         except ValueError:
             traceback.print_exc()
             raise Return([])
-
 
     @classmethod
     @coroutine
     def count(cls, condition={}):
         cnt = yield cls.col.find(condition).count()
         raise Return(cnt)
+
+    @classmethod
+    def to_dict(cls, doc):
+        post = bson_to_json(doc)
+        pre_url = 'http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl='
+        post['image'] = pre_url + post['cdn_url']
+        post['date'] = datestr_from_stamp(post['ori_create_time'], '%Y-%m-%d')
+        return ObjectDict(post)
