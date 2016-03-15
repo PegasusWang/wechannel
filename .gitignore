@@ -11,3 +11,4 @@ _templates/*
 
 node_modules/*
 bower_components/*
+.cache
