@@ -64,9 +64,15 @@ def days_from_slash_date(date_str):
         return date_str
 
 
+def days_from_now(timestamp):
+    """计算给定时间戳距离现在多少天"""
+    now = datetime.datetime.now()
+    old = datetime_from_stamp(timestamp)
+    return (now-old).days
+
+
 if __name__ == '__main__':
     print(datetime_from_stamp(757382400000))
-    print(datestr_from_stamp(757382400000))
     print(type(datetime_from_stamp(757382400000)))
     print(days_from_slash_date('2000/08/24'))
     print(days_from_slash_date('1990/03/29'))
@@ -74,3 +80,4 @@ if __name__ == '__main__':
     print(days_from_slash_date('2000/08/24'))
     print(type(days_from_slash_date('2000/08/24')))
     print(datetime_from_days(days_from_epoch(2015,1,1)))
+    print(days_from_now(1457478405))

@@ -41,7 +41,7 @@
                 <div class="collapse navbar-collapse" id="navbar">
                     <ul class="nav navbar-nav">
                         % if nick_name:
-                            <li><a href="${site.URL}" class="hvr-fade">${nick_name}</a></li>
+                            <li><a href="${site.URL}/?nick_name=${nick_name}" class="hvr-fade">${nick_name}</a></li>
                         % else:
                             <li><a href="${site.URL}/tag/16/" class="hvr-fade">技术 · 编程</a></li>
                             <li><a href="${site.URL}/tag/17/" class="hvr-fade">创意 · 科技</a></li>
