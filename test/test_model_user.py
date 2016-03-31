@@ -25,7 +25,6 @@ class TestModelUser(AsyncTestCase):
         assert user.get('email') == d['email']
         yield User.col.remove({'email': d['email']})
 
-
         d2 = dict(email="t@qq.com", password="1234", password2="1")
         with pytest.raises(ValidationError) as e:
             yield User.insert(**d2)
