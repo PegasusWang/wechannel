@@ -10,7 +10,6 @@ var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 var plumber = require('gulp-plumber')
 
-
 var appRoot = __dirname;
 var viewRoot = path.join(__dirname, '/views');
 var nodeRoot = path.join(__dirname, '/node_modules');
@@ -85,7 +84,7 @@ gulp.task('webpack', function () {
 
 gulp.task('serve', function() {
     browserSync.init({
-        proxy: 'localhost:8888',    // use proxy mode
+        proxy: 'http://localhost:8888',    // use proxy mode
     });
     gulp.watch([
         'views/**/*.html',
@@ -93,7 +92,9 @@ gulp.task('serve', function() {
         'views/**/*.scss',
         'views/**/*.css',
         'views/**/*.js',
-    ]).on('change', reload);
+    ]).on('change', function () {
+        setTimeout(reload, 1000);    // 等待tornado进程重启后再刷新
+    });
 });
 
 

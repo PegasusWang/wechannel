@@ -11,15 +11,14 @@ from os.path import join
 from settings import TEMPLATE_PATH as TEMPLATE_PATH
 from settings import settings
 
-
 MAKO_LOOK_UP = mako.lookup.TemplateLookup(
     cache_enabled=False if settings['debug'] else True,
+    module_directory=join(_env.PREFIX, '_templates'),
     directories=TEMPLATE_PATH,
     input_encoding='utf-8',
     output_encoding='utf-8',
     filesystem_checks=False,
     encoding_errors='replace',
-    module_directory=join(_env.PREFIX, '_templates'),
 )
 
 

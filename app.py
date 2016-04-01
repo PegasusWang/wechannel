@@ -31,14 +31,13 @@ def main():
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(options.port)
 
-    '''
     if options.debug:
         # autorelaod for template file
         tornado.autoreload.start()
         for root, dir, files in os.walk(TEMPLATE_PATH):
             for item in files:
-                tornado.autoreload.watch(os.path.join(root, item))
-    '''
+                if item.endswith('.html'):
+                    tornado.autoreload.watch(os.path.join(root, item))
 
     try:
         tornado.ioloop.IOLoop.current().start()

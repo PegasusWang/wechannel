@@ -9,7 +9,11 @@
 *settings.py
 _templates/*
 
-node_modules/*
-bower_components/*
+themes/node_modules/*
+themes/bower_components/*
+themes/views/*/*.entry.css
+themes/views/*/*.entry.js
+themes/assets/*/*.entry.css
+themes/assets/*/*.entry.js
 .cache
 sougou.py

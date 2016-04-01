@@ -22,7 +22,7 @@ define("debug", default=True, help="debug mode")
 tornado.options.parse_command_line()
 
 STATIC_PATH = path(ROOT, 'themes/assets')
-TEMPLATE_PATH = path(ROOT, 'themes')
+TEMPLATE_PATH = path(ROOT, 'themes/views/')
 
 # Deployment Configuration
 
@@ -63,3 +63,4 @@ SYSLOG_FACILITY = logging.handlers.SysLogHandler.LOG_LOCAL2
 # unless propagate: True is set.
 if options.config:
     tornado.options.parse_config_file(options.config)
+

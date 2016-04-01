@@ -1,2 +1,2 @@
-require("./style.css")
-require("./index.js")
+require("./main.entry.scss")
+require("./index.coffee")
