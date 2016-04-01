@@ -65,7 +65,7 @@ class IndexHandler(BaseHandler):
         posts = yield WechatPost.query(condition, order_by, limit, skip)
         p = Pagination(self.request, page, cnt, CONFIG.SITE.POSTS_PER_PAGE)
 
-        self.render('index.html',
+        self.render('index/index.html',
                     nick_name=nick_name,
                     posts=posts, page=p.page, pages=p.pages,
                     prev_url=p.prev_url, next_url=p.next_url,
@@ -83,7 +83,7 @@ class TagHandler(BaseHandler):
         posts = yield WechatPost.query(condition, order_by, limit, skip)
         p = Pagination(self.request, page, cnt, CONFIG.SITE.POSTS_PER_PAGE)
 
-        self.render('index.html',
+        self.render('index/index.html',
                     posts=posts, page=p.page, pages=p.pages,
                     prev_url=p.prev_url, next_url=p.next_url,
                     site=CONFIG.SITE)

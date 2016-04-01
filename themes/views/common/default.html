@@ -15,8 +15,6 @@
         <link rel="stylesheet" href="${static_url("libraries/prism/prism.css")}" charset="utf8" />
         <link rel="stylesheet" href="${static_url("libraries/bootstrap-social/css/bootstrap-social.css")}"charset="utf8" />
         <link rel="stylesheet" href="${static_url("libraries/bootstrap-social/css/font-awesome.css")}" charset="utf8" />
-        <link rel="stylesheet/less" href="${static_url("css/style.less")}" charset="utf8" />
-        <script src="${static_url("libraries/less/less.min.js")}"></script>
 
 
     </head>
@@ -60,7 +58,7 @@
         <%block name="tpl_body"> </%block>
         <%block name="tpl_footer"> </%block>
 
-        <%include file="footer.html"/>
+        <%include file="../partial/footer.html"/>
 
         <script type="text/javascript">
 if (typeof jQuery == 'undefined') {
@@ -71,7 +69,7 @@ if (typeof jQuery == 'undefined') {
     <script src="${static_url("libraries/imagesloaded/imagesloaded.pkgd.min.js")}"></script>
     <script src="${static_url("libraries/masonry/masonry.pkgd.min.js")}"></script>
     <script src="${static_url("libraries/prism/prism.js")}"></script>
-    <script src="${static_url("js/index.js")}"></script>
+    <script src="${static_url("common/main.entry.js")}"></script>
     </body>
 
 </html>
