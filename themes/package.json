@@ -1,0 +1,38 @@
+{
+  "name": "wechannel",
+  "version": "1.0.0",
+  "description": "README.md",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "gulp"
+  },
+  "author": "Pegasus",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "^6.3.1",
+    "babel-core": "^6.4.5",
+    "babel-loader": "^6.2.1",
+    "body-parser": "^1.14.2",
+    "browser-sync": "^2.11.2",
+    "coffee-loader": "^0.7.2",
+    "coffee-script": "^1.10.0",
+    "css-loader": "^0.23.1",
+    "extract-text-webpack-plugin": "^1.0.1",
+    "file-loader": "^0.8.5",
+    "glob": "^7.0.3",
+    "gulp": "^3.9.0",
+    "gulp-nodemon": "^2.0.6",
+    "gulp-plumber": "^1.1.0",
+    "jade": "^1.11.0",
+    "multiparty": "^4.1.2",
+    "node-sass": "^3.4.2",
+    "path": "^0.12.7",
+    "postcss-loader": "^0.8.0",
+    "precss": "^1.4.0",
+    "sass-loader": "^3.1.2",
+    "serve-favicon": "^2.3.0",
+    "style-loader": "^0.13.0",
+    "sweetalert": "^1.1.3",
+    "webpack-stream": "^3.1.0"
+  }
+}
