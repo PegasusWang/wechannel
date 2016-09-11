@@ -10,8 +10,6 @@ html = "".join(s.split())
 """
 
 
-import re
-
 def extract(begin, end, html):
     if not html:
         return ''
@@ -59,11 +57,10 @@ def extract_strip(begin, end, html):
         return ''
     t = extract(begin, end, html)
     if t:
-        return strip_line(t)
+        return line_strip(t)
 
 
 def extract_map(begin, end, html, func):
-    txt = []
     result = []
     prepos = None
     preend = 0
@@ -87,11 +84,3 @@ def extract_map(begin, end, html, func):
         prepos = pos+len_begin
         preend = endpos
     return ''.join(result)
-
-
-if __name__ == '__main__':
-    import _env
-    from model.po.blog import Po
-    from z42.lib.base.txt2html import txt_withlink
-    txt = Po.mc_get(10501881)
-    txt_withlink(txt.txt)

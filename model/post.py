@@ -45,7 +45,7 @@ class WechatPost(object):
     @classmethod
     def to_dict(cls, doc):
         post = bson_to_json(doc)
-        pre_url = 'http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl='
-        post['image'] = pre_url + post['cdn_url']
+        # pre_url = 'http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl='
+        post['image'] = post['cdn_url']
         post['date'] = datestr_from_stamp(post['ori_create_time'], '%Y-%m-%d')
         return ObjectDict(post)

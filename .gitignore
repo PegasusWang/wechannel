@@ -5,7 +5,6 @@
 *log
 .DS_Store
 *.conf
-*.json
 *settings.py
 _templates/*
 
@@ -16,4 +15,3 @@ themes/views/*/*.entry.js
 themes/assets/*/*.entry.css
 themes/assets/*/*.entry.js
 .cache
-sougou.py
