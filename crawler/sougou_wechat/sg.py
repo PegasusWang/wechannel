@@ -361,6 +361,7 @@ class SougouWechat:
         html = xhtml_unescape(res.text)    # TODO if empty change ip
         o = json.loads(html)
         if not o:
+            self.logger.info(pprint.pformat(html))
             self.logger.info('fetch channel_json_url: %s failed', channel_json_url)
         nick_name = o['nick_name']
         general_msg_list = o['general_msg_list']
