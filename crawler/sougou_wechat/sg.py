@@ -371,6 +371,8 @@ class SougouWechat:
             self.logger.info(
                 'fetch channel_json_url: %s failed', channel_json_url
                 )
+            change_ip()
+            return
         nick_name = o['nick_name']
         general_msg_list = o['general_msg_list']
         article_list = ast.literal_eval(general_msg_list)['list']
