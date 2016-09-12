@@ -307,8 +307,8 @@ class SougouWechat:
         if self.col.find_one(dict(nick_name=self.name, title=o['title'])):
             raise DocumentExistsException("article exist")
 
-        too_old_days = 10
-        if days_from_now(o['ori_create_time']) > too_old_days:    # 10天之前的跳过
+        too_old_days = 30
+        if days_from_now(o['ori_create_time']) > too_old_days:
             self.logger.info(
                 '%s跳过%d天前文章 title : %s\n', self.name, too_old_days, o['title']
             )
