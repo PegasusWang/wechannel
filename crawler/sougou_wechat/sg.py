@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+import ast
 import _env
 import json
 import logging
@@ -344,34 +345,41 @@ class SougouWechat:
         )
 
     def _get_articel_info(self, article_info, nick_name, ori_create_time):
+        for k, v in article_info.items():
+            if isinstance(v, str):
+                article_info[k] = xhtml_unescape(v)
         article_dict = {
-            'cdn_url': article_info['cover'],
+            'cdn_url': article_info['cover'].replace('\\', ''),
             'title': article_info['title'],
             'nick_name': nick_name,
-            'link': 'http://mp.weixin.qq.com' + article_info['content_url'],
+            'link': ('http://mp.weixin.qq.com' +
+                     article_info['content_url'].replace('\\', '')),
             'ori_create_time': ori_create_time,
             'desc': article_info['digest'],
         }
         return article_dict
 
     def fetch_channel_json(self, channel_json_url):
-        time.sleep(30)
+        time.sleep(random.randint(30, 60))
         self.logger.info(channel_json_url)
         res = get(channel_json_url, headers=self.headers)
-        html = xhtml_unescape(res.text)    # TODO if empty change ip
-        o = json.loads(html)
+        # http://stackoverflow.com/questions/24027589/how-to-convert-raw-javascript-object-to-python-dictionary
+        html = res.text.strip()
+        o = ast.literal_eval(html)
         if not o:
             self.logger.info(pprint.pformat(html))
-            self.logger.info('fetch channel_json_url: %s failed', channel_json_url)
+            self.logger.info(
+                'fetch channel_json_url: %s failed', channel_json_url
+                )
         nick_name = o['nick_name']
         general_msg_list = o['general_msg_list']
-        article_list = json.loads(general_msg_list)['list']
+        article_list = ast.literal_eval(general_msg_list)['list']
+        article_dict_list = []
         for article in article_list:
             app_msg_ext_info = article['app_msg_ext_info']
             comm_msg_info = article['comm_msg_info']
             ori_create_time = comm_msg_info['datetime']
 
-            article_dict_list = []
             article_dict_list.append(
                 self._get_articel_info(
                     app_msg_ext_info, nick_name, ori_create_time
@@ -384,6 +392,7 @@ class SougouWechat:
                             article_info, nick_name, ori_create_time
                         )
                     )
+        pprint.pprint(article_dict_list)
         self.save_article_dict_list(nick_name, article_dict_list)
 
     def save_article_dict_list(self, nick_name, article_dict_list):
