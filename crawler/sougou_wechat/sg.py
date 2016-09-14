@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-import ast
 import _env
+import ast
 import json
 import logging
-import random
 import pprint
+import random
 import sys
 import time
 import traceback
+import requests
 
 import six.moves.urllib.parse as urlparse   # for py2 and py3 use six
 from six.moves.urllib.parse import urlencode, quote
@@ -22,8 +23,9 @@ from extract import extract
 from iwgc import name_list, tagid_by_name
 from lib._db import get_mongodb
 from lib._db import redis_client as _redis
-from lib.redis_tools import gid
 from lib.date_util import datestr_from_stamp, days_from_now
+from lib.redis_tools import gid
+from ua import random_ua
 from web_util import get, parse_curl_str, change_ip
 
 """搜狗微信爬虫，先根据公众号名字拿到列表页，如果第一个匹配就转到第一个搜索结果
@@ -359,6 +361,32 @@ class SougouWechat:
         }
         return article_dict
 
+    def get_permanent_wechat_article_url(self, sougou_url):
+        """ 从搜狗的临时url获取永久url
+
+        Args:
+            sougou_url (str): "http://mp.weixin.qq.com/s?timestamp=1473815432&src=3&ver=1&signature=puOtJfG0mefG5o6Ls-bqDmML9ZjS5S6oDIhdUReNRm6*bIF9yINfCoXvB3btXzPEeUZvV8bdlSRTgKPx5Nsd6ZfzLK4Gv4X6z7te1EEo2azG3llx*rw*fxqXrKnwP2oqTTrNYxaRzM8cARFIbjPHVLpWdZGqNhyxsKoK5ozlXSk="
+
+        Returns:
+            msg_link (str): "http://mp.weixin.qq.com/s?__biz=MzI1OTAwNDc1OA==&amp;mid=2652831837&amp;idx=1&amp;sn=3a93c0b6dfeef85e9b85bdac39f47bce&amp;chksm=f1942064c6e3a9728f0bdc4d9bab481b7079c7c1d9ed32397295b45d0b02af839dafcc4b093e#rd";
+
+        """
+        time.sleep(random.randint(1, 10))
+        curl_str = """
+        curl 'http://mp.weixin.qq.com/s?timestamp=1473815432&src=3&ver=1&signature=puOtJfG0mefG5o6Ls-bqDmML9ZjS5S6oDIhdUReNRm6*bIF9yINfCoXvB3btXzPEeUZvV8bdlSRTgKPx5Nsd6ZfzLK4Gv4X6z7te1EEo2azG3llx*rw*fxqXrKnwP2oqTTrNYxaRzM8cARFIbjPHVLpWdZGqNhyxsKoK5ozlXSk=' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' -H 'Connection: keep-alive' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'Upgrade-Insecure-Requests: 1' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36' --compressed
+        """
+        _, headers, _ = parse_curl_str(curl_str)
+        headers['User-Agent'] = random_ua()
+        r = requests.get(sougou_url)
+        html = r.text
+        try:
+            msg_link = xhtml_unescape(extract('msg_link = "', '";', html))
+        except Exception:
+            self.logger.exception(html)
+            msg_link = sougou_url
+        self.logger.info('get permanent url: %s', msg_link)
+        return msg_link
+
     def fetch_channel_json(self, channel_json_url):
         time.sleep(random.randint(30, 60))
         self.logger.info(channel_json_url)
@@ -394,8 +422,45 @@ class SougouWechat:
                             article_info, nick_name, ori_create_time
                         )
                     )
-        pprint.pprint(article_dict_list)
+
+        article_dict_list = self.get_remove_too_old_days_article(
+            article_dict_list
+        )
+        article_dict_list = self.get_remove_mongodb_already_has_article(
+            nick_name, article_dict_list
+        )
+
+        for article_dict in article_dict_list:
+            article_dict['link'] = self.get_permanent_wechat_article_url(
+                article_dict['link']
+            )
+        self.logger.info(pprint.pformat(article_dict_list))
         self.save_article_dict_list(nick_name, article_dict_list)
+
+    def get_remove_too_old_days_article(self, article_dict_list, expire_days=15):
+        res = []
+        for article_dict in article_dict_list:
+            if days_from_now(article_dict['ori_create_time']) > expire_days:
+                self.logger.info(
+                    '%s跳过%d天前文章 title : %s\n', self.name,
+                    expire_days, article_dict['title']
+                )
+            else:
+                res.append(article_dict)
+        return res
+
+    def get_remove_mongodb_already_has_article(self, nick_name, article_dict_list):
+        res = []
+        for article_dict in article_dict_list:
+            if self.col.find_one(
+                dict(nick_name=nick_name, title=article_dict['title'])
+            ):
+                self.logger.info(
+                    '%s 已存在title : %s\n', self.name, article_dict['title']
+                )
+            else:
+                res.append(article_dict)
+        return res
 
     def save_article_dict_list(self, nick_name, article_dict_list):
         # 先删除超过限制数量的文章
@@ -415,15 +480,6 @@ class SougouWechat:
                 )
             )
         for o in article_dict_list:
-            if self.col.find_one(dict(nick_name=nick_name, title=o['title'])):
-                continue
-            too_old_days = 10
-            if days_from_now(o['ori_create_time']) > too_old_days:
-                self.logger.info(
-                    '%s跳过%d天前文章 title : %s\n', self.name,
-                    too_old_days, o['title']
-                )
-                continue
             if o['title']:
                 o_date = datestr_from_stamp(
                     o.get('ori_create_time'), '%Y-%m-%d'
@@ -440,7 +496,6 @@ class SougouWechat:
         if url:
             json_url = url + '&f=json'
             self.fetch_channel_json(json_url)
-            # self.fetch_article_list(url, update)
         else:
             self.logger.info('抓取结束或找不到微信号 %s\n' % self.name)
         self.logger.info('抓取结束 %s\n' % self.name)
@@ -475,7 +530,8 @@ def main():
     try:
         name = sys.argv[1]
     except IndexError:
-        to_fetch_id = list(range(16, 22))
+        # to_fetch_id = list(range(16, 22))
+        to_fetch_id = [16]
         random.shuffle(to_fetch_id)
         for _id in to_fetch_id:
             fetch_all(_id, 'need_name_list')
