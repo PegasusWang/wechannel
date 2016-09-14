@@ -249,8 +249,9 @@ def my_ip():
 
 
 def my_socks5_ip():
-    cmd = """curl --socks5 127.0.01:9050 http://checkip.amazonaws.com/"""
-    os.system(cmd)
+    pass
+    # cmd = """curl --socks5 127.0.01:9050 http://checkip.amazonaws.com/"""
+    # os.system(cmd)
 
 
 def form_data_to_dict(s):
