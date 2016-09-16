@@ -136,7 +136,7 @@ class SougouWechat:
             return None
         query_url = 'http://weixin.sogou.com/weixin?type=1&' + \
             urlencode({'query': self.name})
-        self.logger.info(query_url)
+        self.logger.info('query_url: %s', query_url)
 
         while retries > 0:
             self.logger.info('retry search %s %d' % (self.name, retries))
@@ -147,9 +147,13 @@ class SougouWechat:
             href = None
             try:
                 for item_tag in item_tag_li:
+                    print(item_tag.text)
                     _href = item_tag.get('href')
                     _title = item_tag.find(class_='txt-box').h3.text
-                    if _title.strip() == self.name.strip():
+                    if (
+                        _title.strip() == self.name.strip() and
+                        '最近文章' in item_tag.get_text()
+                    ):
                         href = _href
                         break
             except Exception:
@@ -540,4 +544,5 @@ def main():
     fetch(name)
 
 if __name__ == '__main__':
-    main()
+    #  main()
+    fetch('KnowYourself')

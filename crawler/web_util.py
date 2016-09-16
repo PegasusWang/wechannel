@@ -286,14 +286,14 @@ def get_domain(url):
 
 
 @doublewrap
-def logged(class_, colored=True):
+def logged(class_, use_colore=True):
     """logged decorator.
 
     :param class_: add 'logger' attribute to class
     """
-    coloredlogs.install() if colored else None
+    coloredlogs.install(level=logging.INFO) if use_colore else None
     logging.getLogger("requests").setLevel(logging.WARNING)
-    logging.basicConfig(level=logging.INFO, format='%(lineno)d %(message)s')
+    #  logging.basicConfig(level=logging.INFO, format='%(lineno)d %(message)s')
     class_.logger = logging.getLogger(class_.__name__)
     return class_
 

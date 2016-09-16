@@ -10,7 +10,7 @@ url = 'http://read.html5.qq.com/image?src=forum&q=5&r=0&imgflag=7&imageUrl=http:
 
 
 def test_my():
-    #H = {'Referer': 'http://wechannel.io/'}
+    #  H = {'Referer': 'http://wechannel.io/'}
     H = {'Referer': 'http://104.238.149.32/'}
     r = get(url, headers=H)
     with open('my.jpeg', 'wb') as f:
