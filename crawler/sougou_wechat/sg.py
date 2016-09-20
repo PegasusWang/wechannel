@@ -147,7 +147,6 @@ class SougouWechat:
             href = None
             try:
                 for item_tag in item_tag_li:
-                    print(item_tag.text)
                     _href = item_tag.get('href')
                     _title = item_tag.find(class_='txt-box').h3.text
                     if (
@@ -453,11 +452,13 @@ class SougouWechat:
                 res.append(article_dict)
         return res
 
-    def get_remove_mongodb_already_has_article(self, nick_name, article_dict_list):
+    def get_remove_mongodb_already_has_article(
+        self, nick_name, article_dict_list
+    ):
         res = []
         for article_dict in article_dict_list:
             if self.col.find_one(
-                dict(nick_name=nick_name, title=article_dict['title'])
+                dict(title=article_dict['title'])
             ):
                 self.logger.info(
                     '%s 已存在title : %s\n', self.name, article_dict['title']
@@ -544,5 +545,4 @@ def main():
     fetch(name)
 
 if __name__ == '__main__':
-    #  main()
-    fetch('KnowYourself')
+    main()
