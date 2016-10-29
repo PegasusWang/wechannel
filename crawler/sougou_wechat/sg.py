@@ -364,7 +364,7 @@ class SougouWechat:
         }
         return article_dict
 
-    def get_permanent_wechat_article_url(self, sougou_url):
+    def get_permanent_wechat_article_url(self, sougou_url, retries=3):
         """ 从搜狗的临时url获取永久url
 
         Args:
@@ -374,21 +374,26 @@ class SougouWechat:
             msg_link (str): "http://mp.weixin.qq.com/s?__biz=MzI1OTAwNDc1OA==&amp;mid=2652831837&amp;idx=1&amp;sn=3a93c0b6dfeef85e9b85bdac39f47bce&amp;chksm=f1942064c6e3a9728f0bdc4d9bab481b7079c7c1d9ed32397295b45d0b02af839dafcc4b093e#rd";
 
         """
-        time.sleep(random.randint(1, 10))
-        curl_str = """
-        curl 'http://mp.weixin.qq.com/s?timestamp=1473815432&src=3&ver=1&signature=puOtJfG0mefG5o6Ls-bqDmML9ZjS5S6oDIhdUReNRm6*bIF9yINfCoXvB3btXzPEeUZvV8bdlSRTgKPx5Nsd6ZfzLK4Gv4X6z7te1EEo2azG3llx*rw*fxqXrKnwP2oqTTrNYxaRzM8cARFIbjPHVLpWdZGqNhyxsKoK5ozlXSk=' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' -H 'Connection: keep-alive' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'Upgrade-Insecure-Requests: 1' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36' --compressed
-        """
-        _, headers, _ = parse_curl_str(curl_str)
-        headers['User-Agent'] = random_ua()
-        r = requests.get(sougou_url)
-        html = r.text
-        try:
-            msg_link = xhtml_unescape(extract('msg_link = "', '";', html))
-        except Exception:
-            self.logger.exception(html)
-            msg_link = sougou_url
-        self.logger.info('get permanent url: %s', msg_link)
-        return msg_link
+        while True:
+            retries -= 1
+            time.sleep(random.randint(5, 10))
+            curl_str = """
+            curl 'http://mp.weixin.qq.com/s?timestamp=1473815432&src=3&ver=1&signature=puOtJfG0mefG5o6Ls-bqDmML9ZjS5S6oDIhdUReNRm6*bIF9yINfCoXvB3btXzPEeUZvV8bdlSRTgKPx5Nsd6ZfzLK4Gv4X6z7te1EEo2azG3llx*rw*fxqXrKnwP2oqTTrNYxaRzM8cARFIbjPHVLpWdZGqNhyxsKoK5ozlXSk=' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' -H 'Connection: keep-alive' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'Upgrade-Insecure-Requests: 1' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36' --compressed
+            """
+            _, headers, _ = parse_curl_str(curl_str)
+            headers['User-Agent'] = random_ua()
+            r = requests.get(sougou_url)
+            html = r.text
+            try:
+                msg_link = xhtml_unescape(extract('msg_link = "', '";', html))
+            except Exception:
+                self.logger.exception(html)
+                msg_link = None
+            self.logger.info('get permanent url: %s', msg_link)
+            if msg_link is None and retries > 0:
+                continue
+            else:
+                return msg_link or sougou_url
 
     def fetch_channel_json(self, channel_json_url):
         time.sleep(random.randint(30, 60))
@@ -401,7 +406,7 @@ class SougouWechat:
             self.logger.info(pprint.pformat(html))
             self.logger.info(
                 'fetch channel_json_url: %s failed', channel_json_url
-                )
+            )
             change_ip()
             return
         nick_name = o['nick_name']
@@ -537,6 +542,7 @@ def main():
     except IndexError:
         # to_fetch_id = list(range(16, 22))
         to_fetch_id = [16]
+        # to_fetch_id = [17]
         random.shuffle(to_fetch_id)
         for _id in to_fetch_id:
             fetch_all(_id, 'need_name_list')
