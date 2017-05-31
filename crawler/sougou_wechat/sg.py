@@ -7,6 +7,7 @@ import json
 import logging
 import pprint
 import random
+import re
 import sys
 import time
 import traceback
@@ -44,7 +45,7 @@ class DocumentExpireException(Exception):
 
 def logged(class_):
     logging.getLogger("requests").setLevel(logging.WARNING)
-    logging.basicConfig(level=logging.INFO, format='%(message)s')
+    logging.basicConfig(level=logging.INFO, format='Line:%(lineno)s- %(message)s')
     class_.logger = logging.getLogger(class_.__name__)
     return class_
 
@@ -129,31 +130,19 @@ class SougouWechat:
         """搜索搜狗微信公众号并返回公众号文章列表页面,返回列表格式如下
         http://weixin.sogou.com/gzh?openid=oIWsFt2uCBiQ3mWa2BSUtmdKD3gs&amp;ext=p8lVKENENbkGdvuPNCqHoUqzuLEPtZheP6oyzp3YVsY_-OJEvXMz4yk2nJytyUxY
         """
-        if not self.name:
-            return
-        if self.page > 10:
-            self.logger.info("抓取前10页结束: %s" % self.name)
-            return None
-        query_url = 'http://weixin.sogou.com/weixin?type=1&' + \
-            urlencode({'query': self.name})
+        query_url = 'http://weixin.sogou.com/weixin?type=1&' + urlencode({'query': self.name})
         self.logger.info('query_url: %s', query_url)
 
         while retries > 0:
             self.logger.info('retry search %s %d' % (self.name, retries))
             html = get(query_url, headers=self.headers).text
             soup = BeautifulSoup(html)
-            item_tag_li = soup.find_all('div',
-                                        class_="wx-rb bg-blue wx-rb_v1 _item")
+            a_tag_list = soup.find_all(attrs={'uigs': re.compile('account_name')})
             href = None
             try:
-                for item_tag in item_tag_li:
-                    _href = item_tag.get('href')
-                    _title = item_tag.find(class_='txt-box').h3.text
-                    if (
-                        _title.strip() == self.name.strip() and
-                        '最近文章' in item_tag.get_text()
-                    ):
-                        href = _href
+                for a_tag in a_tag_list:
+                    if a_tag and a_tag.text == self.name:
+                        href = a_tag.get('href')
                         break
             except Exception:
                 self.logger.info('found %s failed' % self.name)
@@ -163,191 +152,11 @@ class SougouWechat:
                 break
             else:
                 self.update_headers()
-                time.sleep(3)
+                time.sleep(5)
             retries -= 1
 
         res = href or None
         return res
-
-    def fetch_article_list(self, url, update=False):
-        """ 微信号列表页面获取文章列表，返回json格式的数据，请求如下
-        http://weixin.sogou.com/gzhjs?openid=oIWsFt0qY9YvyYESHey3MOPfbNy0&ext=lA5I5al3X8CtYOmsUDOgMhZWHWk6xQhEnWXQ_8nrROTPnk351KTH-rcTJUTGDdZq&cb=sogou.weixin_gzhcb&page=3
-        """
-        query_url = 'http://weixin.sogou.com/gzhjs?cb=sogou.weixin_gzhcb&'
-        query_dict = dict(urlparse.parse_qsl(urlparse.urlsplit(url).query))
-
-        while True:
-            page = self.page
-            if update and page > 2:
-                page = 1
-            if not update and page > 10:
-                break
-            self.logger.info('抓取:%s page: %d' % (self.name, page))
-            query_dict['page'] = page
-            json_url = query_url + urlencode(query_dict)
-            json_str = get(json_url, headers=self.headers).text
-            try:
-                url_list, total_pages = self.parse_list_page(json_str.strip())
-            except Exception:
-                traceback.print_exc()
-                self.update_headers()
-                continue
-
-            if not url_list or page > min(10, total_pages):    # 非登录只能抓100条
-                self.logger.info('%s爬取完毕' % self.name)
-                break
-
-            try:
-                for page_url in url_list:
-                    time.sleep(random.randint(3, 10))     # sougou频率限制
-                    self.logger.info(page_url)
-                    self.fetch_page(page_url)
-                    # self.fetch_ori_page(page_url)
-            except (DocumentExistsException, DocumentExpireException):
-                self.logger.info("更新完毕")
-                break
-            except Exception:
-                traceback.print_exc()
-                self.update_headers()
-                continue
-
-            page += 1
-            self.page = page
-
-    def parse_list_page(self, json_str):
-        """解析文章列表json数据，返回文章url列表和页数"""
-        try:
-            self.logger.info(json_str)
-            json_str = json_str[json_str.find('(')+1: json_str.rfind(')')]
-            o = json.loads(json_str)
-            items = o.get('items')
-            total_pages = int(o.get('totalPages'))
-            url_list = []
-            for xml_str in items:
-                url_list.append(
-                    extract('<url><![CDATA[', ']]></url>', xml_str)
-                )
-            _url = 'http://weixin.sogou.com'
-            return [_url+url for url in url_list], total_pages
-        except Exception:
-            time.sleep(10)
-            raise Exception("retry")
-
-    def fetch_ori_page(self, page_url):
-        """拿到单个文章页面，在文章url里加上参数f=json可以直接得到
-        json格式的数据。
-        """
-        # 先拿到搜狗跳转到微信文章的地址
-        pre_r = get(page_url, headers=self.headers)
-        wechat_url = pre_r.url.split('#')[0] + '&f=json'
-
-        if 'mp.weixin' not in wechat_url:
-            return
-
-        r = get(wechat_url, headers=self.headers)
-        self.logger.info(wechat_url)
-        if self.col.find_one(dict(nick_name=self.name, url=wechat_url)):
-            raise DocumentExistsException("article exist")
-        if r.status_code != 200:
-            return
-
-        o = json.loads(r.text)
-        self.col.update(
-            {
-                '_id': gid(),
-                'nick_name': self.name,
-                'url': wechat_url,
-            },
-            {
-                '$set': {'json': o}
-            },
-            upsert=True
-        )
-
-    def fetch_page(self, page_url):
-        """拿到单个文章页面，在文章url里加上参数f=json可以直接得到json格式
-        的数据，处理json拿到需要的字段。
-        """
-        if self.col.find(dict(nick_name=self.name)).count() > self.limit:
-            oldest_doc = list(self.col.find(dict(nick_name=self.name)).
-                              sort([('ori_create_time', 1)]).limit(1))[0]
-            oldest_doc_id = oldest_doc.get('_id')
-            self.col.remove({'_id': oldest_doc_id})
-            self.logger.info(
-                "%s:删除:%s : %s\n" %
-                (
-                    self.name,
-                    oldest_doc.get('title'),
-                    datestr_from_stamp(
-                        oldest_doc.get('ori_create_time'), '%Y-%m-%d'
-                    )
-                )
-            )
-
-        # 先拿到搜狗跳转到微信文章的地址
-        pre_r = get(page_url, headers=self.headers)
-        wechat_url = pre_r.url.split('#')[0] + '&f=json'
-
-        if 'mp.weixin' not in wechat_url:
-            return
-
-        r = get(wechat_url, headers=self.headers)
-        self.logger.info(wechat_url)
-        if self.col.find_one(dict(nick_name=self.name, url=wechat_url)):
-            raise DocumentExistsException("article exist")
-
-        if r.status_code != 200:
-            return
-
-        o = json.loads(r.text)
-        if o.get('title') is None:    # 文章被投诉后没有此字段，跳过
-            return
-
-        fields = {'cdn_url', 'nick_name', 'title', 'content', 'desc',
-                  'link', 'ori_create_time'}
-        media_fields = {'round_head_img', 'nick_name', 'signature'}
-        media_dict = {k: o.get(k) for k in media_fields}
-        article_dict = {k: o.get(k) for k in fields}
-
-        if self.col.find_one(dict(nick_name=self.name, title=o['title'])):
-            raise DocumentExistsException("article exist")
-
-        too_old_days = 30
-        if days_from_now(o['ori_create_time']) > too_old_days:
-            self.logger.info(
-                '%s跳过%d天前文章 title : %s\n', self.name, too_old_days, o['title']
-            )
-            raise DocumentExpireException("expire")
-
-        if o['title'] and o['content']:
-            o_date = datestr_from_stamp(o.get('ori_create_time'), '%Y-%m-%d')
-            self.logger.info(
-                '%s-保存文章 title : %s %s\n', self.name, o['title'], o_date
-            )
-
-            article_dict['nick_name'] = self.name
-            article_dict['url'] = wechat_url
-            article_dict['tag_id'] = self.tag_id
-            del article_dict['content']
-            self.col.update(
-                {
-                    '_id': gid()
-                },
-                {
-                    '$set': article_dict
-                },
-                True
-            )
-
-        # http://mp.weixin.qq.com/s?__biz=MjM5NjAxMDc4MA==&mid=404900944&idx=1&sn=fe2d53ce562ee51e7163a60d4c95484a#rd
-        biz = extract('__biz=', '==', article_dict['link'])
-        self.media_col.update(
-            {'_id': biz},
-            {
-                '$set': media_dict
-            },
-            True
-        )
 
     def _get_articel_info(self, article_info, nick_name, ori_create_time):
         for k, v in article_info.items():
@@ -363,37 +172,6 @@ class SougouWechat:
             'desc': article_info['digest'],
         }
         return article_dict
-
-    def get_permanent_wechat_article_url(self, sougou_url, retries=3):
-        """ 从搜狗的临时url获取永久url
-
-        Args:
-            sougou_url (str): "http://mp.weixin.qq.com/s?timestamp=1473815432&src=3&ver=1&signature=puOtJfG0mefG5o6Ls-bqDmML9ZjS5S6oDIhdUReNRm6*bIF9yINfCoXvB3btXzPEeUZvV8bdlSRTgKPx5Nsd6ZfzLK4Gv4X6z7te1EEo2azG3llx*rw*fxqXrKnwP2oqTTrNYxaRzM8cARFIbjPHVLpWdZGqNhyxsKoK5ozlXSk="
-
-        Returns:
-            msg_link (str): "http://mp.weixin.qq.com/s?__biz=MzI1OTAwNDc1OA==&amp;mid=2652831837&amp;idx=1&amp;sn=3a93c0b6dfeef85e9b85bdac39f47bce&amp;chksm=f1942064c6e3a9728f0bdc4d9bab481b7079c7c1d9ed32397295b45d0b02af839dafcc4b093e#rd";
-
-        """
-        while True:
-            retries -= 1
-            time.sleep(random.randint(5, 10))
-            curl_str = """
-            curl 'http://mp.weixin.qq.com/s?timestamp=1473815432&src=3&ver=1&signature=puOtJfG0mefG5o6Ls-bqDmML9ZjS5S6oDIhdUReNRm6*bIF9yINfCoXvB3btXzPEeUZvV8bdlSRTgKPx5Nsd6ZfzLK4Gv4X6z7te1EEo2azG3llx*rw*fxqXrKnwP2oqTTrNYxaRzM8cARFIbjPHVLpWdZGqNhyxsKoK5ozlXSk=' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' -H 'Connection: keep-alive' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4' -H 'Upgrade-Insecure-Requests: 1' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36' --compressed
-            """
-            _, headers, _ = parse_curl_str(curl_str)
-            headers['User-Agent'] = random_ua()
-            r = requests.get(sougou_url)
-            html = r.text
-            try:
-                msg_link = xhtml_unescape(extract('msg_link = "', '";', html))
-            except Exception:
-                self.logger.exception(html)
-                msg_link = None
-            self.logger.info('get permanent url: %s', msg_link)
-            if msg_link is None and retries > 0:
-                continue
-            else:
-                return msg_link or sougou_url
 
     def fetch_channel_json(self, channel_json_url):
         time.sleep(random.randint(30, 60))
@@ -431,17 +209,9 @@ class SougouWechat:
                         )
                     )
 
-        article_dict_list = self.get_remove_too_old_days_article(
-            article_dict_list
-        )
-        article_dict_list = self.get_remove_mongodb_already_has_article(
-            nick_name, article_dict_list
-        )
+        article_dict_list = self.get_remove_too_old_days_article(article_dict_list)
+        article_dict_list = self.get_remove_mongodb_already_has_article(nick_name, article_dict_list)
 
-        for article_dict in article_dict_list:
-            article_dict['link'] = self.get_permanent_wechat_article_url(
-                article_dict['link']
-            )
         self.logger.info(pprint.pformat(article_dict_list))
         self.save_article_dict_list(nick_name, article_dict_list)
 
@@ -457,9 +227,7 @@ class SougouWechat:
                 res.append(article_dict)
         return res
 
-    def get_remove_mongodb_already_has_article(
-        self, nick_name, article_dict_list
-    ):
+    def get_remove_mongodb_already_has_article(self, nick_name, article_dict_list):
         res = []
         for article_dict in article_dict_list:
             if self.col.find_one(
@@ -548,7 +316,7 @@ def main():
             fetch_all(_id, 'need_name_list')
         return
 
-    fetch(name)
+    fetch(name.strip())
 
 if __name__ == '__main__':
     main()
