@@ -141,7 +141,7 @@ class SougouWechat:
             href = None
             try:
                 for a_tag in a_tag_list:
-                    if a_tag and a_tag.text == self.name:
+                    if a_tag and a_tag.text.lower() == self.name.lower():
                         href = a_tag.get('href')
                         break
             except Exception:
@@ -174,14 +174,14 @@ class SougouWechat:
         return article_dict
 
     def fetch_channel_json(self, channel_json_url):
-        time.sleep(random.randint(30, 60))
+        time.sleep(random.randint(60, 120))
         self.logger.info(channel_json_url)
         res = get(channel_json_url, headers=self.headers)
         # http://stackoverflow.com/questions/24027589/how-to-convert-raw-javascript-object-to-python-dictionary
         html = res.text.strip()
         o = ast.literal_eval(html)
         if not o:
-            self.logger.info(pprint.pformat(html))
+            self.logger.debug(pprint.pformat(html))
             self.logger.info(
                 'fetch channel_json_url: %s failed', channel_json_url
             )
@@ -309,8 +309,7 @@ def main():
         name = sys.argv[1]
     except IndexError:
         # to_fetch_id = list(range(16, 22))
-        to_fetch_id = [16]
-        # to_fetch_id = [17]
+        to_fetch_id = [22]
         random.shuffle(to_fetch_id)
         for _id in to_fetch_id:
             fetch_all(_id, 'need_name_list')
