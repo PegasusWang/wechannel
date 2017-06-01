@@ -97,7 +97,7 @@ class SougouWechat:
         """生成一个搜狗微信的cookie并返回
         """
         while True:
-            time.sleep(5)
+            time.sleep(random.randint(30, 60))
             url = 'http://weixin.sogou.com/weixin?query=%s' % \
                 random.choice('abcdefghijklmnopqrstuvwxyz')
 
@@ -152,7 +152,7 @@ class SougouWechat:
                 break
             else:
                 self.update_headers()
-                time.sleep(5)
+                time.sleep(random.randint(30, 60))
             retries -= 1
 
         res = href or None

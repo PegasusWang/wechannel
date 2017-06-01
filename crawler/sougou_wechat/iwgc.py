@@ -140,5 +140,5 @@ def set_need_name_list(_id):
 
 
 if __name__ == '__main__':
-    for _id in range(16, 22):
+    for _id in range(16, 23):
         set_need_name_list(_id)
